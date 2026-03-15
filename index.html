@@ -1171,12 +1171,94 @@
 
         <!-- VIEW: SETTINGS -->
         <div id="settingsView" class="view-section">
-          <div
-            class="main-content full-width-layout"
-            style="grid-template-columns: 1fr"
-          >
+          <!-- O formulário envolve as secções de dados e permissões -->
+          <form id="userForm">
+            <input type="hidden" id="editingUserId" />
+
+            <!-- 1. Secção de Inserção / Edição de Dados -->
             <div class="form-section">
-              <h3>Gestão de Usuário e Permissões</h3>
+              <h3>Novo Utilizador / Editar Dados Básicos</h3>
+              <div
+                class="form-grid"
+                style="
+                  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                "
+              >
+                <div class="form-group">
+                  <label for="userName">Nome Completo</label>
+                  <input
+                    type="text"
+                    id="userName"
+                    placeholder="Nome do consultor"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="userEmail">E-mail de Acesso</label>
+                  <input
+                    type="email"
+                    id="userEmail"
+                    placeholder="email@lauconsult.com"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="userPassword">Senha de Acesso</label>
+                  <input
+                    type="password"
+                    id="userPassword"
+                    placeholder="Defina uma senha"
+                  />
+                  <div
+                    class="password-rules"
+                    id="userRules"
+                    style="min-height: 80px"
+                  >
+                    <div class="rule-item" data-rule="upper">
+                      <span class="rule-icon"></span> Uma letra maiúscula
+                    </div>
+                    <div class="rule-item" data-rule="lower">
+                      <span class="rule-icon"></span> Letras minúsculas
+                    </div>
+                    <div class="rule-item" data-rule="number">
+                      <span class="rule-icon"></span> Números
+                    </div>
+                    <div class="rule-item" data-rule="special">
+                      <span class="rule-icon"></span> Caracteres especiais
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="userPermission">Nível de Conta</label>
+                  <select id="userPermission">
+                    <option value="Administrador">Administrador</option>
+                    <option value="Convidado">Convidado</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Secção de Listagem de Utilizadores (Movida para cima) -->
+            <div class="table-container" style="margin-top: 25px">
+              <div class="table-header-flex">
+                <div class="table-title">Lista de Utilizadores do Sistema</div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="text-align: left; width: 25%">Nome</th>
+                    <th>E-mail</th>
+                    <th>Nível</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody"></tbody>
+              </table>
+            </div>
+
+            <!-- 3. Secção de Configuração de Permissões (Separada) -->
+            <div class="form-section" style="margin-top: 25px">
+              <h3>Configurar Permissões por Módulo</h3>
               <div class="permissions-info-box">
                 <strong>Módulos do Sistema e Controle de Acesso:</strong>
                 <p
@@ -1190,170 +1272,90 @@
                   deixe desmarcado para apenas <strong>Leitura</strong>.
                 </p>
               </div>
-              <form id="userForm">
-                <input type="hidden" id="editingUserId" />
-                <div
-                  class="form-grid"
-                  style="
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                  "
-                >
-                  <div class="form-group">
-                    <label for="userName">Nome Completo</label>
-                    <input
-                      type="text"
-                      id="userName"
-                      placeholder="Nome do consultor"
-                      required
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label for="userEmail">E-mail de Acesso</label>
-                    <input
-                      type="email"
-                      id="userEmail"
-                      placeholder="email@lauconsult.com"
-                      required
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label for="userPassword">Senha de Acesso</label>
-                    <input
-                      type="password"
-                      id="userPassword"
-                      placeholder="Defina uma senha"
-                    />
-                    <div
-                      class="password-rules"
-                      id="userRules"
-                      style="min-height: 80px"
+              <div class="permissions-grid">
+                <div class="permission-item">
+                  <span class="permission-label">Dashboard</span>
+                  <div class="permission-options">
+                    <label class="option-check"
+                      ><input type="checkbox" id="perm_dashboard" /><span
+                        >Edição</span
+                      ></label
                     >
-                      <div class="rule-item" data-rule="upper">
-                        <span class="rule-icon"></span> Uma letra maiúscula
-                      </div>
-                      <div class="rule-item" data-rule="lower">
-                        <span class="rule-icon"></span> Letras minúsculas
-                      </div>
-                      <div class="rule-item" data-rule="number">
-                        <span class="rule-icon"></span> Números
-                      </div>
-                      <div class="rule-item" data-rule="special">
-                        <span class="rule-icon"></span> Caracteres especiais
-                      </div>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="userPermission">Nível de Conta</label>
-                    <select id="userPermission">
-                      <option value="Administrador">Administrador</option>
-                      <option value="Convidado">Convidado</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group full" style="margin-top: 20px">
-                    <label style="color: var(--text-main); font-size: 0.95rem"
-                      >Configurar Permissões por Módulo:</label
-                    >
-                    <div class="permissions-grid">
-                      <div class="permission-item">
-                        <span class="permission-label">Dashboard</span>
-                        <div class="permission-options">
-                          <label class="option-check"
-                            ><input type="checkbox" id="perm_dashboard" /><span
-                              >Edição</span
-                            ></label
-                          >
-                        </div>
-                      </div>
-                      <div class="permission-item">
-                        <span class="permission-label">Registro</span>
-                        <div class="permission-options">
-                          <label class="option-check"
-                            ><input type="checkbox" id="perm_registro" /><span
-                              >Edição</span
-                            ></label
-                          >
-                        </div>
-                      </div>
-                      <div class="permission-item">
-                        <span class="permission-label">Tabela</span>
-                        <div class="permission-options">
-                          <label class="option-check"
-                            ><input type="checkbox" id="perm_tabela" /><span
-                              >Edição</span
-                            ></label
-                          >
-                        </div>
-                      </div>
-                      <div class="permission-item">
-                        <span class="permission-label">Contrato</span>
-                        <div class="permission-options">
-                          <label class="option-check"
-                            ><input type="checkbox" id="perm_contrato" /><span
-                              >Edição</span
-                            ></label
-                          >
-                        </div>
-                      </div>
-                      <div class="permission-item">
-                        <span class="permission-label">Configurações</span>
-                        <div class="permission-options">
-                          <label class="option-check"
-                            ><input type="checkbox" id="perm_settings" /><span
-                              >Edição</span
-                            ></label
-                          >
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
-                <div
-                  style="
-                    margin-top: 30px;
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 10px;
-                    padding-top: 20px;
-                    border-top: 1px solid var(--border);
-                  "
-                >
-                  <button
-                    type="button"
-                    id="cancelUserEdit"
-                    class="btn"
-                    style="display: none; background: #e2e8f0"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    id="userSubmitBtn"
-                    class="btn btn-primary"
-                  >
-                    Salvar Usuário
-                  </button>
+                <div class="permission-item">
+                  <span class="permission-label">Registro</span>
+                  <div class="permission-options">
+                    <label class="option-check"
+                      ><input type="checkbox" id="perm_registro" /><span
+                        >Edição</span
+                      ></label
+                    >
+                  </div>
                 </div>
-              </form>
-            </div>
-          </div>
+                <div class="permission-item">
+                  <span class="permission-label">Tabela</span>
+                  <div class="permission-options">
+                    <label class="option-check"
+                      ><input type="checkbox" id="perm_tabela" /><span
+                        >Edição</span
+                      ></label
+                    >
+                  </div>
+                </div>
+                <div class="permission-item">
+                  <span class="permission-label">Contrato</span>
+                  <div class="permission-options">
+                    <label class="option-check"
+                      ><input type="checkbox" id="perm_contrato" /><span
+                        >Edição</span
+                      ></label
+                    >
+                  </div>
+                </div>
+                <div class="permission-item">
+                  <span class="permission-label">Configurações</span>
+                  <div class="permission-options">
+                    <label class="option-check"
+                      ><input type="checkbox" id="perm_settings" /><span
+                        >Edição</span
+                      ></label
+                    >
+                  </div>
+                </div>
+              </div>
 
-          <div class="table-container">
-            <div class="table-header-flex">
-              <div class="table-title">Lista de Utilizadores do Sistema</div>
+              <!-- Botões de Ação do Formulário -->
+              <div
+                style="
+                  margin-top: 30px;
+                  display: flex;
+                  justify-content: flex-end;
+                  gap: 10px;
+                  padding-top: 20px;
+                  border-top: 1px solid var(--border);
+                "
+              >
+                <button
+                  type="button"
+                  id="cancelUserEdit"
+                  class="btn"
+                  style="display: none; background: #e2e8f0"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  id="userSubmitBtn"
+                  class="btn btn-primary"
+                >
+                  Salvar Usuário
+                </button>
+              </div>
             </div>
-            <table>
-              <thead>
-                <tr>
-                  <th style="text-align: left; width: 25%">Nome</th>
-                  <th>E-mail</th>
-                  <th>Nível</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody id="userTableBody"></tbody>
-            </table>
-          </div>
+          </form>
+
+          <!-- Botão de Navegação Geral -->
           <div style="margin-top: 20px">
             <button
               class="btn"
@@ -1955,6 +1957,10 @@
         updatePasswordRules("", "userRules");
       }
 
+      // --- ATRIBUIÇÃO DOS EVENTOS AOS BOTÕES CANCELAR ---
+      document.getElementById("cancelEdit").onclick = resetForm;
+      document.getElementById("cancelUserEdit").onclick = resetUserForm;
+
       // --- RENDERING ---
       function renderAll() {
         els.tableBody.innerHTML = "";
@@ -2007,8 +2013,8 @@
             <td style="text-align: center;">${u.email}</td>
             <td style="text-align: center;"><span class="badge ${badgeClass}">${u.permission}</span></td>
             <td style="text-align: center;">
-              <button class="action-btn btn-edit" onclick="editUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-              <button class="action-btn btn-delete" onclick="deleteUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4 a2 2 0 0 1 2 2v2"></path></svg></button>
+              <button class="action-btn btn-edit" type="button" onclick="editUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+              <button class="action-btn btn-delete" type="button" onclick="deleteUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4 a2 2 0 0 1 2 2v2"></path></svg></button>
             </td>
           `;
           els.userTableBody.appendChild(tr);
