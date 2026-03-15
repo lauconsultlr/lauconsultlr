@@ -1,4 +1,4 @@
-## Hi there 👋
+## Este site é de prioridade exclusiva da LauConsultlr, não pordendo ser comercializado e nem distribuidos, sem que tenha autorização. 👋
 
 <!--
 **lauconsultlr/lauconsultlr** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
