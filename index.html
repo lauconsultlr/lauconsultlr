@@ -1,1655 +1,2019 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LauConsult - Gestão de Horas</title>
     <!-- Importando a fonte Inter para garantir o visual moderno -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <!-- EmailJS SDK -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"
+    ></script>
     <!-- jsPDF SDK para geração de relatórios -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --secondary: #64748b;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --background: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --radius: 12px;
-            --radius-lg: 20px;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-        }
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary: #64748b;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --background: #f8fafc;
+        --card-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --radius: 12px;
+        --radius-lg: 20px;
+        --shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg:
+          0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family:
+          "Inter",
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
 
-        body {
-            background-color: var(--background);
-            color: var(--text-main);
-            line-height: 1.5;
-            min-height: 100vh;
-        }
+      body {
+        background-color: var(--background);
+        color: var(--text-main);
+        line-height: 1.5;
+        min-height: 100vh;
+      }
 
-        /* --- TELA DE LOGIN --- */
-        #loginScreen {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        }
+      /* --- TELA DE LOGIN --- */
+      #loginScreen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      }
 
-        .login-card {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-        }
+      .login-card {
+        background: var(--card-bg);
+        padding: 40px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        width: 100%;
+        max-width: 420px;
+        text-align: center;
+      }
 
-        .login-header {
-            margin-bottom: 32px;
-        }
+      .login-header {
+        margin-bottom: 32px;
+      }
 
-        .login-logo {
-            color: var(--primary);
-            margin-bottom: 16px;
-            display: inline-flex;
-            background: #eff6ff;
-            padding: 12px;
-            border-radius: 12px;
-        }
+      .login-logo {
+        color: var(--primary);
+        margin-bottom: 16px;
+        display: inline-flex;
+        background: #eff6ff;
+        padding: 12px;
+        border-radius: 12px;
+      }
 
-        .login-header h2 {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 8px;
-        }
+      .login-header h2 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 8px;
+      }
 
-        .login-header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
+      .login-header p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+      }
 
-        .login-form .form-group, .reset-form .form-group {
-            text-align: left;
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+      .login-form .form-group {
+        text-align: left;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
 
-        .login-form label, .reset-form label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
+      .login-form label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-main);
+      }
 
-        .login-form input, .reset-form input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
+      .login-form input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 1rem;
+        transition: all 0.2s;
+      }
 
-        .login-form input:focus, .reset-form input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-            outline: none;
-        }
+      .login-form input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
 
-        /* --- REGRAS DE SENHA --- */
-        .password-rules {
-            margin-top: 10px;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            padding: 0 4px;
-        }
+      /* --- REGRAS DE SENHA --- */
+      .password-rules {
+        margin-top: 10px;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 0 4px;
+      }
 
-        .rule-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            color: var(--secondary);
-            transition: all 0.2s ease;
-        }
+      .rule-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: var(--secondary);
+        transition: all 0.2s ease;
+      }
 
-        .rule-item.valid {
-            color: var(--success);
-            font-weight: 600;
-        }
+      .rule-item.valid {
+        color: var(--success);
+        font-weight: 600;
+      }
 
-        .rule-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 14px;
-            height: 14px;
-        }
+      .rule-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+      }
 
-        .login-footer-links {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            font-size: 0.85rem;
-            margin-top: 10px;
-        }
+      .login-footer-links {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        font-size: 0.85rem;
+        margin-top: 10px;
+      }
 
-        .login-footer-links a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
+      /* --- DASHBOARD PRINCIPAL --- */
+      #appContent {
+        padding: 30px 20px;
+        display: none;
+      }
 
-        /* --- DASHBOARD PRINCIPAL --- */
-        #appContent {
-            padding: 30px 20px;
-            display: none;
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 0 5px;
+      }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 0 5px;
-        }
+      .logo h1 {
+        font-size: 1.5rem;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        cursor: pointer;
+      }
 
-        .logo h1 {
-            font-size: 1.5rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 800;
-            cursor: pointer;
-        }
+      .user-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
 
-        .user-actions {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+      .config-hours {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--card-bg);
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
 
-        .config-hours {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--card-bg);
-            padding: 8px 16px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
+      .config-hours label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--secondary);
+      }
 
-        .config-hours label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--secondary);
-        }
+      .config-hours input {
+        width: 75px;
+        padding: 6px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        text-align: center;
+        font-weight: 700;
+        color: var(--primary);
+      }
 
-        .config-hours input {
-            width: 75px;
-            padding: 6px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            text-align: center;
-            font-weight: 700;
-            color: var(--primary);
-        }
+      .config-hours input:disabled {
+        background: #f1f5f9;
+        cursor: not-allowed;
+        color: var(--text-muted);
+      }
 
-        .config-hours input:disabled {
-            background: #f1f5f9;
-            cursor: not-allowed;
-            color: var(--text-muted);
-        }
+      .icon-btn {
+        background: #fff;
+        border: 1px solid var(--border);
+        padding: 10px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        color: var(--secondary);
+      }
 
-        .icon-btn {
-            background: #fff;
-            border: 1px solid var(--border);
-            padding: 10px;
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            color: var(--secondary);
-        }
+      .icon-btn:hover {
+        background: #f1f5f9;
+        color: var(--primary);
+        border-color: var(--primary);
+      }
 
-        .icon-btn:hover {
-            background: #f1f5f9;
-            color: var(--primary);
-            border-color: var(--primary);
-        }
+      .btn-pdf {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: var(--radius);
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        box-shadow: var(--shadow);
+      }
 
-        .btn-pdf {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: var(--radius);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            box-shadow: var(--shadow);
-        }
+      .btn-pdf:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+      }
 
-        .btn-pdf:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-        }
+      .btn-logout {
+        background: #fff;
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+        padding: 10px 18px;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
 
-        .btn-logout {
-            background: #fff;
-            color: var(--text-muted);
-            border: 1px solid var(--border);
-            padding: 10px 18px;
-            border-radius: var(--radius);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+      .btn-logout:hover {
+        background: #fee2e2;
+        color: var(--danger);
+        border-color: var(--danger);
+      }
 
-        .btn-logout:hover {
-            background: #fee2e2;
-            color: var(--danger);
-            border-color: var(--danger);
-        }
+      /* --- VIEWS --- */
+      .view-section {
+        display: none;
+      }
 
-        /* --- VIEWS --- */
-        .view-section {
-            display: none;
-        }
+      .view-section.active {
+        display: block;
+      }
 
-        .view-section.active {
-            display: block;
-        }
+      /* Cards do Dashboard */
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
 
-        /* Cards do Dashboard */
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+      .card {
+        background: var(--card-bg);
+        padding: 24px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        border-left: 5px solid transparent;
+      }
 
-        .card {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            border-left: 5px solid transparent;
-        }
+      .card-title {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
 
-        .card-title {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+      .card-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-main);
+      }
 
-        .card-value {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
+      .card-amount {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+      }
 
-        .card-amount {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(0,0,0,0.05);
-        }
+      .card.primary {
+        border-left-color: var(--primary);
+      }
+      .card.success {
+        border-left-color: var(--success);
+      }
+      .card.warning {
+        border-left-color: var(--warning);
+      }
+      .card.danger {
+        border-left-color: var(--danger);
+      }
 
-        .card.primary { border-left-color: var(--primary); }
-        .card.success { border-left-color: var(--success); }
-        .card.warning { border-left-color: var(--warning); }
-        .card.danger { border-left-color: var(--danger); }
+      /* Conteúdo Principal */
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
 
-        /* Conteúdo Principal */
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+      .main-content.no-form-layout {
+        grid-template-columns: 350px 1fr;
+        align-items: start;
+      }
 
+      @media (max-width: 992px) {
+        .main-content,
         .main-content.no-form-layout {
-            grid-template-columns: 350px 1fr;
-            align-items: start;
+          grid-template-columns: 1fr;
         }
+      }
 
-        @media (max-width: 992px) {
-            .main-content, .main-content.no-form-layout { 
-                grid-template-columns: 1fr; 
-            }
-        }
+      /* Estilização do Formulário */
+      .form-section {
+        background: var(--card-bg);
+        padding: 24px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
 
-        /* Estilização do Formulário */
-        .form-section {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
+      .form-section h3 {
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+        color: var(--text-main);
+        font-weight: 700;
+      }
 
-        .form-section h3 {
-            margin-bottom: 20px;
-            font-size: 1.1rem;
-            color: var(--text-main);
-            font-weight: 700;
-        }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+      }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+      .form-group.full {
+        grid-column: 1 / -1;
+      }
 
-        .form-group.full { grid-column: 1 / -1; }
+      label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--secondary);
+      }
 
-        label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--secondary);
-        }
+      input,
+      select {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        background: #fff;
+        color: var(--text-main);
+      }
 
-        input, select {
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            background: #fff;
-            color: var(--text-main);
-        }
+      input:focus,
+      select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.05);
+        outline: none;
+      }
 
-        input:focus, select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.05);
-            outline: none;
-        }
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
 
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+      .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+      }
 
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+      /* Gráfico de Duas Roscas */
+      .visual-card {
+        background: var(--card-bg);
+        padding: 24px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+        height: 100%;
+      }
 
-        /* Gráfico de Duas Roscas */
-        .visual-card {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            justify-content: center;
-            height: 100%;
-        }
+      .chart-legend {
+        display: flex;
+        gap: 16px;
+        margin-top: 5px;
+        justify-content: center;
+        width: 100%;
+      }
 
-        .chart-legend {
-            display: flex;
-            gap: 16px;
-            margin-top: 5px;
-            justify-content: center;
-            width: 100%;
-        }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .legend-dot.regular {
+        background: var(--primary);
+      }
+      .legend-dot.exceeding {
+        background: var(--warning);
+      }
 
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        .legend-dot.regular { background: var(--primary); }
-        .legend-dot.exceeding { background: var(--warning); }
+      .chart-container {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        margin: 10px 0;
+      }
 
-        .chart-container {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            margin: 10px 0;
-        }
+      .chart-svg {
+        transform: rotate(-90deg);
+      }
 
-        .chart-svg { transform: rotate(-90deg); }
-        
-        /* Anel de Consumo Regular (Interno) */
-        .chart-bg-regular { fill: none; stroke: #f1f5f9; stroke-width: 15; }
-        .chart-progress-regular { 
-            fill: none; 
-            stroke: var(--primary); 
-            stroke-width: 15; 
-            stroke-linecap: round;
-            transition: stroke-dasharray 0.5s ease, stroke-dashoffset 0.5s ease;
-        }
+      /* Anéis do Gráfico */
+      .chart-bg-regular {
+        fill: none;
+        stroke: #f1f5f9;
+        stroke-width: 15;
+      }
+      .chart-progress-regular {
+        fill: none;
+        stroke: var(--primary);
+        stroke-width: 15;
+        stroke-linecap: round;
+        transition:
+          stroke-dasharray 0.5s ease,
+          stroke-dashoffset 0.5s ease;
+      }
+      .chart-bg-exceeding {
+        fill: none;
+        stroke: #f1f5f9;
+        stroke-width: 8;
+        opacity: 0.5;
+      }
+      .chart-progress-exceeding {
+        fill: none;
+        stroke: var(--warning);
+        stroke-width: 8;
+        stroke-linecap: round;
+        transition:
+          stroke-dasharray 0.5s ease,
+          stroke-dashoffset 0.5s ease;
+      }
 
-        /* Anel de Excedentes (Externo) */
-        .chart-bg-exceeding { fill: none; stroke: #f1f5f9; stroke-width: 8; opacity: 0.5; }
-        .chart-progress-exceeding { 
-            fill: none; 
-            stroke: var(--warning); 
-            stroke-width: 8; 
-            stroke-linecap: round;
-            transition: stroke-dasharray 0.5s ease, stroke-dashoffset 0.5s ease;
-        }
+      .chart-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        font-weight: 800;
+      }
 
-        .chart-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.5rem;
-            font-weight: 800;
-        }
+      /* Tabela */
+      .table-container {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow-x: auto;
+        margin-top: 10px;
+      }
 
-        /* Tabela */
-        .table-container {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-            margin-top: 10px;
-        }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        background: #f8fafc;
+        padding: 16px;
+        font-size: 0.8rem;
+        color: var(--secondary);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: center;
+        border-bottom: 2px solid var(--border);
+      }
+      td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.95rem;
+        color: var(--text-main);
+      }
+      tr:hover {
+        background-color: #fcfdfe;
+      }
 
-        .main-content.no-form-layout .table-container {
-            margin-top: 0;
-        }
+      .action-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        display: inline-flex;
+      }
+      .btn-edit {
+        color: var(--primary);
+      }
+      .btn-edit:hover {
+        background: #eff6ff;
+      }
+      .btn-delete {
+        color: var(--danger);
+      }
+      .btn-delete:hover {
+        background: #fef2f2;
+      }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+      .badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .badge-admin {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .badge-guest {
+        background: #fef9c3;
+        color: #854d0e;
+      }
 
-        th {
-            background: #f8fafc;
-            padding: 16px;
-            font-size: 0.8rem;
-            color: var(--secondary);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            text-align: center;
-            border-bottom: 2px solid var(--border);
-        }
+      /* --- PERMISSÕES GRID --- */
+      .permissions-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        background: #f8fafc;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        margin-top: 10px;
+      }
 
-        td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.95rem;
-            color: var(--text-main);
-        }
+      .permission-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        grid-column: 1 / -1;
+      }
 
-        tr:hover { background-color: #fcfdfe; }
+      .permission-options {
+        display: flex;
+        gap: 15px;
+      }
 
-        .action-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            transition: all 0.2s;
-            display: inline-flex;
-        }
+      .option-check {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
 
-        .btn-edit { color: var(--primary); }
-        .btn-edit:hover { background: #eff6ff; }
-        .btn-delete { color: var(--danger); }
-        .btn-delete:hover { background: #fef2f2; }
-        .btn-reset { color: var(--warning); }
-        .btn-reset:hover { background: #fffbeb; }
+      .permissions-info-box {
+        background: #f0f7ff;
+        border: 1px solid #cce3ff;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+      }
 
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .badge-admin { background: #dcfce7; color: #166534; }
-        .badge-guest { background: #fef9c3; color: #854d0e; }
+      #notification {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        padding: 16px 24px;
+        border-radius: 12px;
+        color: white;
+        box-shadow: var(--shadow-lg);
+        transform: translateY(150px);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 2000;
+        font-weight: 600;
+      }
 
-        /* --- PERMISSÕES GRID --- */
-        .permissions-grid {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 12px;
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            margin-top: 10px;
-        }
+      #notification.show {
+        transform: translateY(0);
+      }
+      .bg-success {
+        background: var(--success);
+      }
+      .bg-danger {
+        background: var(--danger);
+      }
 
-        .permission-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 12px;
-            background: #fff;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            grid-column: 1 / -1;
-        }
+      .empty-state {
+        padding: 50px;
+        text-align: center;
+        color: var(--text-muted);
+        font-style: italic;
+      }
 
-        .permission-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .permission-options {
-            display: flex;
-            gap: 15px;
-        }
-
-        .option-check {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .permissions-info-box {
-            background: #f0f7ff;
-            border: 1px solid #cce3ff;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-        }
-
-        /* --- MODAL RESET LINK --- */
-        #resetModal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-        }
-
-        .modal-card {
-            background: #fff;
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: var(--shadow-lg);
-        }
-
-        #notification {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            padding: 16px 24px;
-            border-radius: 12px;
-            color: white;
-            box-shadow: var(--shadow-lg);
-            transform: translateY(150px);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 2000;
-            font-weight: 600;
-        }
-
-        #notification.show { transform: translateY(0); }
-        .bg-success { background: var(--success); }
-        .bg-danger { background: var(--danger); }
-
-        .empty-state {
-            padding: 50px;
-            text-align: center;
-            color: var(--text-muted);
-            font-style: italic;
-        }
+      /* Loading Overlay */
+      #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        display: none;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div id="loadingOverlay">
+      <div style="font-weight: 700; color: var(--primary)">
+        Carregando dados...
+      </div>
+    </div>
 
     <!-- TELA DE LOGIN -->
     <div id="loginScreen">
-        <div class="login-card">
-            <!-- SEÇÃO DE LOGIN -->
-            <div id="loginSection">
-                <div class="login-header">
-                    <div class="login-logo">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    </div>
-                    <h2>Bem-vindo de volta</h2>
-                    <p>Entre na sua conta LauConsult</p>
+      <div class="login-card">
+        <div id="loginSection">
+          <div class="login-header">
+            <div class="login-logo">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <h2>Bem-vindo de volta</h2>
+            <p>Entre na sua conta LauConsult</p>
+          </div>
+
+          <form class="login-form" id="loginForm">
+            <div class="form-group">
+              <label for="loginEmail">E-mail</label>
+              <input
+                type="email"
+                id="loginEmail"
+                placeholder="exemplo@email.com"
+                required
+                autocomplete="username"
+              />
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Senha</label>
+              <input
+                type="password"
+                id="loginPassword"
+                placeholder="Sua senha"
+                required
+                autocomplete="current-password"
+              />
+              <div class="password-rules" id="loginRules">
+                <div class="rule-item" data-rule="upper">
+                  <span class="rule-icon"></span> Uma letra maiúscula
                 </div>
-                
-                <form class="login-form" id="loginForm">
-                    <div class="form-group">
-                        <label for="loginEmail">E-mail</label>
-                        <input type="email" id="loginEmail" placeholder="exemplo@email.com" required autocomplete="username">
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Senha</label>
-                        <input type="password" id="loginPassword" placeholder="Sua senha" required autocomplete="current-password">
-                        
-                        <div class="password-rules" id="loginRules">
-                            <div class="rule-item" data-rule="upper"><span class="rule-icon"></span> Uma letra maiúscula</div>
-                            <div class="rule-item" data-rule="lower"><span class="rule-icon"></span> Letras minúsculas</div>
-                            <div class="rule-item" data-rule="number"><span class="rule-icon"></span> Números</div>
-                            <div class="rule-item" data-rule="special"><span class="rule-icon"></span> Caracteres especiais</div>
-                        </div>
-                    </div>
-                    
-                    <div class="login-footer-links">
-                        <label style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 400; cursor: pointer;">
-                            <input type="checkbox" id="rememberMe" style="width: auto;"> Lembrar-me
-                        </label>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-login">Entrar na Plataforma</button>
-                </form>
+                <div class="rule-item" data-rule="lower">
+                  <span class="rule-icon"></span> Letras minúsculas
+                </div>
+                <div class="rule-item" data-rule="number">
+                  <span class="rule-icon"></span> Números
+                </div>
+                <div class="rule-item" data-rule="special">
+                  <span class="rule-icon"></span> Caracteres especiais
+                </div>
+              </div>
             </div>
 
-            <!-- SEÇÃO DE REDEFINIÇÃO DE SENHA (Ocultada por lógica) -->
-            <div id="resetSection" style="display: none;">
-                <!-- Conteúdo mantido mas inacessível pela UI -->
+            <div class="login-footer-links">
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  color: var(--text-muted);
+                  font-weight: 400;
+                  cursor: pointer;
+                "
+              >
+                <input type="checkbox" id="rememberMe" style="width: auto" />
+                Lembrar-me
+              </label>
             </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary btn-login"
+              style="width: 100%"
+            >
+              Entrar na Plataforma
+            </button>
+          </form>
         </div>
+      </div>
     </div>
 
     <!-- PAINEL DE GESTÃO -->
     <div id="appContent">
-        <div class="container">
-            <header>
-                <div class="logo" onclick="switchView('dashboard')">
-                    <h1>
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        LauConsult
-                    </h1>
+      <div class="container">
+        <header>
+          <div class="logo" onclick="switchView('dashboard')">
+            <h1>
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              LauConsult
+            </h1>
+          </div>
+          <div class="user-actions">
+            <div class="config-hours" id="contractControl">
+              <label>Contrato:</label>
+              <input
+                type="number"
+                id="contractedHoursInput"
+                value="40"
+                min="1"
+              />
+              <label style="margin-left: 5px">Valor/h:</label>
+              <input
+                type="number"
+                id="hourlyRateInput"
+                value="0"
+                min="0"
+                step="1"
+              />
+            </div>
+            <button
+              class="btn-pdf"
+              onclick="generatePDF()"
+              title="Baixar Relatório PDF"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              PDF
+            </button>
+            <button
+              id="settingsBtn"
+              class="icon-btn"
+              onclick="switchView('settings')"
+              title="Configurações e Usuários"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+                ></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button class="btn-logout" id="logoutBtn">Sair</button>
+          </div>
+        </header>
+
+        <!-- VIEW: DASHBOARD -->
+        <div id="dashboardView" class="view-section active">
+          <section class="dashboard">
+            <div class="card primary">
+              <span class="card-title">Contratado</span>
+              <span class="card-value" id="statContracted">0h</span>
+              <div
+                class="card-amount"
+                style="color: var(--primary); font-weight: 700"
+              >
+                <span id="statContractedValue">R$ 0,00</span>
+              </div>
+            </div>
+            <div class="card warning">
+              <span class="card-title">Consumidas</span>
+              <span class="card-value" id="statConsumed">0h</span>
+              <div
+                class="card-amount"
+                style="color: var(--warning); font-weight: 700"
+              >
+                <span id="amountConsumedBRL">R$ 0,00</span>
+              </div>
+            </div>
+            <div class="card success" id="remainingCard">
+              <span class="card-title">Saldo Horas</span>
+              <span class="card-value" id="statRemaining">0h</span>
+              <div
+                class="card-amount"
+                style="color: var(--success); font-weight: 700"
+              >
+                <span id="amountRemainingBRL">R$ 0,00</span>
+              </div>
+            </div>
+            <div class="card danger">
+              <span class="card-title">Excedentes</span>
+              <span class="card-value" id="statExceeding">0h</span>
+              <div
+                class="card-amount"
+                style="color: var(--danger); font-weight: 700"
+              >
+                <span id="amountExceedingBRL">R$ 0,00</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="main-content">
+            <div class="form-section" id="registrationFormPanel">
+              <h3 id="formTitle">Registar Nova Atividade</h3>
+              <form id="activityForm">
+                <input type="hidden" id="editingId" />
+                <div class="form-grid">
+                  <div class="form-group full">
+                    <label for="description">Descrição da Tarefa</label>
+                    <input
+                      type="text"
+                      id="description"
+                      placeholder="Ex: Consultoria Técnica"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="startDate">Data</label>
+                    <input type="date" id="startDate" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="startTime">Início</label>
+                    <select id="startTime" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="endTime">Fim</label>
+                    <select id="endTime" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="extraHours">Extras (em horas)</label>
+                    <select id="extraHours">
+                      <option value="0">0:00</option>
+                      <option value="0.5">0:30</option>
+                      <option value="1">1:00</option>
+                      <option value="1.5">1:30</option>
+                      <option value="2">2:00</option>
+                      <option value="2.5">2:30</option>
+                      <option value="3">3:00</option>
+                      <option value="3.5">3:30</option>
+                      <option value="4">4:00</option>
+                      <option value="4.5">4:30</option>
+                      <option value="5">5:00</option>
+                      <option value="5.5">5:30</option>
+                      <option value="6">6:00</option>
+                      <option value="6.5">6:30</option>
+                      <option value="7">7:00</option>
+                      <option value="7.5">7:30</option>
+                      <option value="8">8:00</option>
+                      <option value="8.5">8:30</option>
+                      <option value="9">9:00</option>
+                      <option value="9.5">9:30</option>
+                      <option value="10">10:00</option>
+                      <option value="12">12:00</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="user-actions">
-                    <div class="config-hours" id="contractControl">
-                        <label>Contrato:</label>
-                        <input type="number" id="contractedHoursInput" value="40" min="1">
-                        <label style="margin-left: 5px;">Valor/h:</label>
-                        <input type="number" id="hourlyRateInput" value="0" min="0" step="1">
-                    </div>
-                    <!-- BOTÃO DE EXPORTAR PDF -->
-                    <button class="btn-pdf" onclick="generatePDF()" title="Baixar Relatório PDF">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        PDF
-                    </button>
-                    <!-- ÍCONE DE CONFIGURAÇÃO CORRIGIDO -->
-                    <button id="settingsBtn" class="icon-btn" onclick="switchView('settings')" title="Configurações e Usuários">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                    </button>
-                    <button class="btn-logout" id="logoutBtn">Sair</button>
+                <div
+                  style="
+                    margin-top: 25px;
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                  "
+                >
+                  <button
+                    type="button"
+                    id="cancelEdit"
+                    class="btn"
+                    style="display: none; background: #e2e8f0; color: #475569"
+                  >
+                    Cancelar
+                  </button>
+                  <button type="submit" id="submitBtn" class="btn btn-primary">
+                    Adicionar Atividade
+                  </button>
                 </div>
-            </header>
-
-            <!-- VIEW: DASHBOARD -->
-            <div id="dashboardView" class="view-section active">
-                <section class="dashboard">
-                    <div class="card primary">
-                        <span class="card-title">Contratado</span>
-                        <span class="card-value" id="statContracted">0h</span>
-                        <div class="card-amount" style="color: var(--primary); font-weight: 700;">
-                            <span id="statContractedValue">R$ 0,00</span>
-                        </div>
-                    </div>
-                    <div class="card warning">
-                        <span class="card-title">Consumidas</span>
-                        <span class="card-value" id="statConsumed">0h</span>
-                        <div class="card-amount" style="color: var(--warning); font-weight: 700;">
-                            <span id="amountConsumedBRL">R$ 0,00</span>
-                        </div>
-                    </div>
-                    <!-- Card de Saldo movido para antes dos Excedentes -->
-                    <div class="card success" id="remainingCard">
-                        <span class="card-title">Saldo Horas</span>
-                        <span class="card-value" id="statRemaining">0h</span>
-                        <div class="card-amount" style="color: var(--success); font-weight: 700;">
-                            <span id="amountRemainingBRL">R$ 0,00</span>
-                        </div>
-                    </div>
-                    <div class="card danger">
-                        <span class="card-title">Excedentes</span>
-                        <span class="card-value" id="statExceeding">0h</span>
-                        <div class="card-amount" style="color: var(--danger); font-weight: 700;">
-                            <span id="amountExceedingBRL">R$ 0,00</span>
-                        </div>
-                    </div>
-                </section>
-
-                <div class="main-content">
-                    <div class="form-section" id="registrationFormPanel">
-                        <h3 id="formTitle">Registar Nova Atividade</h3>
-                        <form id="activityForm">
-                            <input type="hidden" id="editingId">
-                            <div class="form-grid">
-                                <div class="form-group full">
-                                    <label for="description">Descrição da Tarefa</label>
-                                    <input type="text" id="description" placeholder="Ex: Consultoria Técnica" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="startDate">Data</label>
-                                    <input type="date" id="startDate" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="startTime">Início</label>
-                                    <select id="startTime" required></select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="endTime">Fim</label>
-                                    <select id="endTime" required></select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="extraHours">Extras (em horas)</label>
-                                    <select id="extraHours">
-                                        <option value="0">0:00</option>
-                                        <option value="0.5">0:30</option>
-                                        <option value="1">1:00</option>
-                                        <option value="1.5">1:30</option>
-                                        <option value="2">2:00</option>
-                                        <option value="2.5">2:30</option>
-                                        <option value="3">3:00</option>
-                                        <option value="3.5">3:30</option>
-                                        <option value="4">4:00</option>
-                                        <option value="4.5">4:30</option>
-                                        <option value="5">5:00</option>
-                                        <option value="5.5">5:30</option>
-                                        <option value="6">6:00</option>
-                                        <option value="6.5">6:30</option>
-                                        <option value="7">7:00</option>
-                                        <option value="7.5">7:30</option>
-                                        <option value="8">8:00</option>
-                                        <option value="8.5">8:30</option>
-                                        <option value="9">9:00</option>
-                                        <option value="9.5">9:30</option>
-                                        <option value="10">10:00</option>
-                                        <option value="12">12:00</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
-                                <button type="button" id="cancelEdit" class="btn" style="display: none; background: #e2e8f0; color: #475569;">Cancelar</button>
-                                <button type="submit" id="submitBtn" class="btn btn-primary">
-                                    Adicionar Atividade
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="visual-card">
-                        <!-- Título do Cartão Restaurado -->
-                        <span class="card-title">Consumo do Contrato</span>
-                        
-                        <!-- Rótulo de dados (Valor total) logo abaixo do título -->
-                        <p id="consumptionLabel" style="font-size: 0.9rem; color: var(--text-main); font-weight: 700; margin-bottom: 5px;">0 de 0 horas</p>
-
-                        <div class="chart-container">
-                            <!-- viewBox expandido para 260x260 -->
-                            <svg class="chart-svg" width="180" height="180" viewBox="0 0 260 260">
-                                <!-- Anel de Excedentes (Externo) -->
-                                <circle class="chart-bg-exceeding" cx="130" cy="130" r="95" fill="none"></circle>
-                                <circle id="chartProgressExceeding" class="chart-progress-exceeding" cx="130" cy="130" r="95" stroke-dasharray="596.9" stroke-dashoffset="596.9" fill="none"></circle>
-                                
-                                <!-- Rótulo na Ponta da Rosca de Excedentes - Fonte 16px e 900 weight -->
-                                <text id="exceedingTipLabel" font-size="16" font-weight="900" fill="var(--warning)" style="display: none;"></text>
-
-                                <!-- Anel de Consumo Regular (Interno) -->
-                                <circle class="chart-bg-regular" cx="130" cy="130" r="75" fill="none"></circle>
-                                <circle id="chartProgressRegular" class="chart-progress-regular" cx="130" cy="130" r="75" stroke-dasharray="471.2" stroke-dashoffset="471.2" fill="none"></circle>
-                            </svg>
-                            <div class="chart-text" id="percentageText">0%</div>
-                        </div>
-
-                        <!-- Legenda dos Gráficos na Base -->
-                        <div class="chart-legend">
-                            <div class="legend-item"><span class="legend-dot regular"></span> Consumo</div>
-                            <div class="legend-item"><span class="legend-dot exceeding"></span> Excedente</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <table id="activitiesTable">
-                        <thead>
-                            <tr id="tableHeaderRow">
-                                <th style="text-align: left; width: 35%;">Tarefa</th>
-                                <th>Data e Período</th>
-                                <th>Realizadas</th>
-                                <th>Extras</th>
-                                <th id="actionHeader">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-                    <div id="emptyState" class="empty-state">Nenhum registro encontrado.</div>
-                </div>
+              </form>
             </div>
 
-            <!-- VIEW: SETTINGS / USER MANAGEMENT -->
-            <div id="settingsView" class="view-section">
-                <div class="main-content">
-                    <div class="form-section">
-                        <h3>Gestão de Usuário e Permissões</h3>
-                        <div class="permissions-info-box">
-                            <strong>Módulos do Sistema e Controle de Acesso:</strong>
-                            <p style="font-size: 0.8rem; margin-top: 5px; color: var(--text-muted);">
-                                Marque <strong>Edição</strong> para permitir alterações ou deixe desmarcado para apenas <strong>Leitura</strong>.
-                            </p>
-                        </div>
-                        <form id="userForm">
-                            <input type="hidden" id="editingUserId">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="userName">Nome Completo</label>
-                                    <input type="text" id="userName" placeholder="Nome do consultor" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="userEmail">E-mail de Acesso</label>
-                                    <input type="email" id="userEmail" placeholder="email@lauconsult.com" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="userPassword">Senha de Acesso</label>
-                                    <input type="password" id="userPassword" placeholder="Defina uma senha">
-                                    
-                                    <div class="password-rules" id="userRules">
-                                        <div class="rule-item" data-rule="upper"><span class="rule-icon"></span> Uma letra maiúscula</div>
-                                        <div class="rule-item" data-rule="lower"><span class="rule-icon"></span> Letras minúsculas</div>
-                                        <div class="rule-item" data-rule="number"><span class="rule-icon"></span> Números</div>
-                                        <div class="rule-item" data-rule="special"><span class="rule-icon"></span> Caracteres especiais</div>
-                                    </div>
-                                    <small id="passHint" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">Mínimo 8 caracteres recomendado.</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="userPermission">Nível de Conta</label>
-                                    <select id="userPermission">
-                                        <option value="Administrador">Administrador</option>
-                                        <option value="Convidado">Convidado</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group full">
-                                    <label>Configurar Permissões por Módulo:</label>
-                                    <div class="permissions-grid">
-                                        <div class="permission-item">
-                                            <span class="permission-label">Dashboard (Indicadores)</span>
-                                            <div class="permission-options">
-                                                <label class="option-check"><input type="checkbox" id="perm_dashboard"><span>Edição</span></label>
-                                            </div>
-                                        </div>
-                                        <div class="permission-item">
-                                            <span class="permission-label">Registro (Novas Tarefas)</span>
-                                            <div class="permission-options">
-                                                <label class="option-check"><input type="checkbox" id="perm_registro"><span>Edição</span></label>
-                                            </div>
-                                        </div>
-                                        <div class="permission-item">
-                                            <span class="permission-label">Tabela (Ações)</span>
-                                            <div class="permission-options">
-                                                <label class="option-check"><input type="checkbox" id="perm_tabela"><span>Edição</span></label>
-                                            </div>
-                                        </div>
-                                        <div class="permission-item">
-                                            <span class="permission-label">Contrato (Limite)</span>
-                                            <div class="permission-options">
-                                                <label class="option-check"><input type="checkbox" id="perm_contrato"><span>Edição</span></label>
-                                            </div>
-                                        </div>
-                                        <div class="permission-item">
-                                            <span class="permission-label">Configurações (Usuários)</span>
-                                            <div class="permission-options">
-                                                <label class="option-check"><input type="checkbox" id="perm_settings"><span>Edição</span></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
-                                <button type="button" id="cancelUserEdit" class="btn" style="display: none; background: #e2e8f0;">Cancelar</button>
-                                <button type="submit" id="userSubmitBtn" class="btn btn-primary">Adicionar Usuário</button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="visual-card">
-                        <span class="card-title">Segurança Avançada</span>
-                        <div style="margin: 20px 0; color: var(--secondary); font-size: 0.85rem; text-align: left;">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 15px; display: block;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                            <p style="margin-bottom: 12px;"><strong>Requisitos de Senha:</strong> Garanta que os utilizadores sigam os padrões de complexidade para proteger o sistema.</p>
-                            <p><strong>Criptografia SHA-256:</strong> Todas as credenciais são processadas por hash assíncrono irreverso.</p>
-                        </div>
-                    </div>
+            <div class="visual-card">
+              <span class="card-title">Consumo do Contrato</span>
+              <p
+                id="consumptionLabel"
+                style="
+                  font-size: 0.9rem;
+                  color: var(--text-main);
+                  font-weight: 700;
+                  margin-bottom: 5px;
+                "
+              >
+                0 de 0 horas
+              </p>
+              <div class="chart-container">
+                <svg
+                  class="chart-svg"
+                  width="180"
+                  height="180"
+                  viewBox="0 0 260 260"
+                >
+                  <circle
+                    class="chart-bg-exceeding"
+                    cx="130"
+                    cy="130"
+                    r="95"
+                    fill="none"
+                  ></circle>
+                  <circle
+                    id="chartProgressExceeding"
+                    class="chart-progress-exceeding"
+                    cx="130"
+                    cy="130"
+                    r="95"
+                    stroke-dasharray="596.9"
+                    stroke-dashoffset="596.9"
+                    fill="none"
+                  ></circle>
+                  <text
+                    id="exceedingTipLabel"
+                    font-size="16"
+                    font-weight="900"
+                    fill="var(--warning)"
+                    style="display: none"
+                  ></text>
+                  <circle
+                    class="chart-bg-regular"
+                    cx="130"
+                    cy="130"
+                    r="75"
+                    fill="none"
+                  ></circle>
+                  <circle
+                    id="chartProgressRegular"
+                    class="chart-progress-regular"
+                    cx="130"
+                    cy="130"
+                    r="75"
+                    stroke-dasharray="471.2"
+                    stroke-dashoffset="471.2"
+                    fill="none"
+                  ></circle>
+                </svg>
+                <div class="chart-text" id="percentageText">0%</div>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <span class="legend-dot regular"></span> Consumo
                 </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="text-align: left; width: 25%;">Nome</th>
-                                <th>E-mail</th>
-                                <th>Nível</th>
-                                <th>Módulos</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userTableBody"></tbody>
-                    </table>
+                <div class="legend-item">
+                  <span class="legend-dot exceeding"></span> Excedente
                 </div>
-                <div style="margin-top: 20px;">
-                    <button class="btn" style="background: var(--secondary); color: white;" onclick="switchView('dashboard')">Voltar ao Painel</button>
-                </div>
+              </div>
             </div>
+          </div>
+
+          <div class="table-container">
+            <table id="activitiesTable">
+              <thead>
+                <tr id="tableHeaderRow">
+                  <th style="text-align: left; width: 35%">Tarefa</th>
+                  <th>Data e Período</th>
+                  <th>Realizadas</th>
+                  <th>Extras</th>
+                  <th id="actionHeader">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+            <div id="emptyState" class="empty-state">
+              Nenhum registro encontrado.
+            </div>
+          </div>
         </div>
+
+        <!-- VIEW: SETTINGS -->
+        <div id="settingsView" class="view-section">
+          <div class="main-content">
+            <div class="form-section">
+              <h3>Gestão de Usuário e Permissões</h3>
+              <div class="permissions-info-box">
+                <strong>Módulos do Sistema e Controle de Acesso:</strong>
+                <p
+                  style="
+                    font-size: 0.8rem;
+                    margin-top: 5px;
+                    color: var(--text-muted);
+                  "
+                >
+                  Marque <strong>Edição</strong> para permitir alterações ou
+                  deixe desmarcado para apenas <strong>Leitura</strong>.
+                </p>
+              </div>
+              <form id="userForm">
+                <input type="hidden" id="editingUserId" />
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="userName">Nome Completo</label>
+                    <input
+                      type="text"
+                      id="userName"
+                      placeholder="Nome do consultor"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="userEmail">E-mail de Acesso</label>
+                    <input
+                      type="email"
+                      id="userEmail"
+                      placeholder="email@lauconsult.com"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="userPassword">Senha de Acesso</label>
+                    <input
+                      type="password"
+                      id="userPassword"
+                      placeholder="Defina uma senha"
+                    />
+                    <div class="password-rules" id="userRules">
+                      <div class="rule-item" data-rule="upper">
+                        <span class="rule-icon"></span> Uma letra maiúscula
+                      </div>
+                      <div class="rule-item" data-rule="lower">
+                        <span class="rule-icon"></span> Letras minúsculas
+                      </div>
+                      <div class="rule-item" data-rule="number">
+                        <span class="rule-icon"></span> Números
+                      </div>
+                      <div class="rule-item" data-rule="special">
+                        <span class="rule-icon"></span> Caracteres especiais
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="userPermission">Nível de Conta</label>
+                    <select id="userPermission">
+                      <option value="Administrador">Administrador</option>
+                      <option value="Convidado">Convidado</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group full">
+                    <label>Configurar Permissões por Módulo:</label>
+                    <div class="permissions-grid">
+                      <div class="permission-item">
+                        <span class="permission-label">Dashboard</span>
+                        <div class="permission-options">
+                          <label class="option-check"
+                            ><input type="checkbox" id="perm_dashboard" /><span
+                              >Edição</span
+                            ></label
+                          >
+                        </div>
+                      </div>
+                      <div class="permission-item">
+                        <span class="permission-label">Registro</span>
+                        <div class="permission-options">
+                          <label class="option-check"
+                            ><input type="checkbox" id="perm_registro" /><span
+                              >Edição</span
+                            ></label
+                          >
+                        </div>
+                      </div>
+                      <div class="permission-item">
+                        <span class="permission-label">Tabela</span>
+                        <div class="permission-options">
+                          <label class="option-check"
+                            ><input type="checkbox" id="perm_tabela" /><span
+                              >Edição</span
+                            ></label
+                          >
+                        </div>
+                      </div>
+                      <div class="permission-item">
+                        <span class="permission-label">Contrato</span>
+                        <div class="permission-options">
+                          <label class="option-check"
+                            ><input type="checkbox" id="perm_contrato" /><span
+                              >Edição</span
+                            ></label
+                          >
+                        </div>
+                      </div>
+                      <div class="permission-item">
+                        <span class="permission-label">Configurações</span>
+                        <div class="permission-options">
+                          <label class="option-check"
+                            ><input type="checkbox" id="perm_settings" /><span
+                              >Edição</span
+                            ></label
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    margin-top: 25px;
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                  "
+                >
+                  <button
+                    type="button"
+                    id="cancelUserEdit"
+                    class="btn"
+                    style="display: none; background: #e2e8f0"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    id="userSubmitBtn"
+                    class="btn btn-primary"
+                  >
+                    Salvar Usuário
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="text-align: left; width: 25%">Nome</th>
+                  <th>E-mail</th>
+                  <th>Nível</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody"></tbody>
+            </table>
+          </div>
+          <div style="margin-top: 20px">
+            <button
+              class="btn"
+              style="background: var(--secondary); color: white"
+              onclick="switchView('dashboard')"
+            >
+              Voltar ao Painel
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="notification">Mensagem</div>
 
-    <script>
-        // --- CONFIGURAÇÃO EMAIL JS ---
-        const EMAILJS_SERVICE_ID = "service_ih49m2t";
-        const EMAILJS_TEMPLATE_ID = "template_h3mu8ep";
-        const EMAILJS_PUBLIC_KEY = "IlPs1DVmMg_meYQnB";
+    <!-- FIREBASE INTEGRATION -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        onAuthStateChanged,
+        signInWithCustomToken,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+        updateDoc,
+        deleteDoc,
+        collection,
+        addDoc,
+        onSnapshot,
+        query,
+        where,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Inicializa EmailJS imediatamente ao carregar o script
-        (function() {
-            if (typeof emailjs !== 'undefined') {
-                emailjs.init(EMAILJS_PUBLIC_KEY);
-            }
-        })();
+      // --- CONFIGURATION ---
+      // A chave de API agora é preenchida corretamente para evitar o erro auth/invalid-api-key
+      const firebaseConfig = {
+        apiKey: "AIzaSyBGd373XPQTBV4U4A0T0Ow-8f4IKdZrcaE",
+        authDomain: "lauconsultlr-fabf7.firebaseapp.com",
+        projectId: "lauconsultlr-fabf7",
+        storageBucket: "lauconsultlr-fabf7.firebasestorage.app",
+        messagingSenderId: "179125915794",
+        appId: "1:179125915794:web:7b1cfd1eefa0c6a3cdd64b",
+      };
 
-        // --- UTILITÁRIOS DE SEGURANÇA ---
-        async function hashPassword(password) {
-            if (!password) return null;
-            const msgUint8 = new TextEncoder().encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      // Inicialização segura do Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const appId =
+        typeof __app_id !== "undefined" ? __app_id : "lauconsult-app";
+
+      // --- STATE ---
+      let activities = [];
+      let users = [];
+      let currentUser = null;
+      let appSettings = { contractedHours: 40, hourlyRate: 0 };
+      let isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+      // --- DOM ELEMENTS ---
+      const els = {
+        loginScreen: document.getElementById("loginScreen"),
+        appContent: document.getElementById("appContent"),
+        loginForm: document.getElementById("loginForm"),
+        activityForm: document.getElementById("activityForm"),
+        userForm: document.getElementById("userForm"),
+        tableBody: document.getElementById("tableBody"),
+        userTableBody: document.getElementById("userTableBody"),
+        emptyState: document.getElementById("emptyState"),
+        loading: document.getElementById("loadingOverlay"),
+        contractedHoursInput: document.getElementById("contractedHoursInput"),
+        hourlyRateInput: document.getElementById("hourlyRateInput"),
+        notification: document.getElementById("notification"),
+      };
+
+      // --- AUTHENTICATION FLOW ---
+      const initAuth = async () => {
+        try {
+          // Verifica se há um token de ambiente ou o token anónimo fornecido
+          const token =
+            typeof __initial_auth_token !== "undefined" && __initial_auth_token
+              ? __initial_auth_token
+              : "FsaSir6jFeSESDbxh9JFOOYl9393";
+
+          if (token) {
+            // Tenta autenticar com o token fornecido (Custom Token)
+            await signInWithCustomToken(auth, token).catch(async (err) => {
+              // Se falhar o custom token, tenta anónimo padrão
+              await signInAnonymously(auth);
+            });
+          } else {
+            await signInAnonymously(auth);
+          }
+        } catch (err) {
+          console.error("Erro na Autenticação Firebase:", err);
+          showNotification(
+            "Erro na ligação ao servidor de segurança.",
+            "danger",
+          );
         }
+      };
 
-        // --- ESTADO E DADOS ---
-        let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const defaultPasswordHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"; // "123456"
+      // Executa ouvintes apenas após autenticação bem sucedida (Regra 3)
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          await setupFirestoreListeners(user);
+          await checkAppAuth();
+        }
+      });
 
-        const defaultAdmin = { 
-            id: 1, 
-            name: "Administrador", 
-            email: "souzamorim33@gmail.com", 
-            password: defaultPasswordHash,
-            permission: "Administrador",
-            modPerms: { dashboard: true, registro: true, tabela: true, contrato: true, settings: true }
+      // --- FIRESTORE SYNC ---
+      const setupFirestoreListeners = async (user) => {
+        if (!user) return;
+
+        // Caminhos seguindo a regra /artifacts/{appId}/public/data/{collection} (Regra 1)
+        const activitiesRef = collection(
+          db,
+          "artifacts",
+          appId,
+          "public",
+          "data",
+          "activities",
+        );
+        const usersRef = collection(
+          db,
+          "artifacts",
+          appId,
+          "public",
+          "data",
+          "users",
+        );
+        const settingsRef = doc(
+          db,
+          "artifacts",
+          appId,
+          "public",
+          "data",
+          "settings",
+          "global",
+        );
+
+        // Snapshot: Atividades - Sincronização em tempo real
+        onSnapshot(
+          activitiesRef,
+          (snapshot) => {
+            activities = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            renderAll();
+          },
+          (err) => {
+            console.error("Erro ao ler atividades:", err);
+          },
+        );
+
+        // Snapshot: Usuários
+        onSnapshot(
+          usersRef,
+          (snapshot) => {
+            users = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            if (users.length === 0) syncInitialAdmin();
+            renderUsers();
+          },
+          (err) => {
+            console.error("Erro ao ler utilizadores:", err);
+          },
+        );
+
+        // Snapshot: Configurações Globais (Contrato e Valor)
+        onSnapshot(
+          settingsRef,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              appSettings = docSnap.data();
+              els.contractedHoursInput.value = appSettings.contractedHours;
+              els.hourlyRateInput.value = appSettings.hourlyRate;
+              renderAll();
+            } else {
+              setDoc(settingsRef, appSettings);
+            }
+          },
+          (err) => {
+            console.error("Erro ao ler definições:", err);
+          },
+        );
+      };
+
+      const syncInitialAdmin = async () => {
+        const admin = {
+          name: "Administrador",
+          email: "souzamorim33@gmail.com",
+          password:
+            "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", // "123456"
+          permission: "Administrador",
+          modPerms: {
+            dashboard: true,
+            registro: true,
+            tabela: true,
+            contrato: true,
+            settings: true,
+          },
+        };
+        const usersRef = collection(
+          db,
+          "artifacts",
+          appId,
+          "public",
+          "data",
+          "users",
+        );
+        await addDoc(usersRef, admin);
+      };
+
+      // --- ACTIONS ---
+      window.generatePDF = () => {
+        window.activitiesData = activities;
+        window.contractHoursVal = appSettings.contractedHours;
+        window.rateVal = appSettings.hourlyRate;
+        if (typeof window.executePDFGeneration === "function")
+          window.executePDFGeneration();
+      };
+
+      els.activityForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!currentUser?.modPerms.registro)
+          return showNotification("Sem permissão para registar", "danger");
+
+        const data = {
+          description: document.getElementById("description").value,
+          startDate: document.getElementById("startDate").value,
+          startTime: document.getElementById("startTime").value,
+          endTime: document.getElementById("endTime").value,
+          extraHours:
+            parseFloat(document.getElementById("extraHours").value) || 0,
         };
 
-        let users = []; 
+        const [sH, sM] = data.startTime.split(":").map(Number);
+        const [eH, eM] = data.endTime.split(":").map(Number);
+        data.calculatedHours = (eH * 60 + eM - (sH * 60 + sM)) / 60;
 
-        function syncAdminProfile() {
-            let currentUsers = JSON.parse(localStorage.getItem('users')) || [defaultAdmin];
-            const adminIdx = currentUsers.findIndex(u => u.email === defaultAdmin.email);
-            if (adminIdx !== -1) {
-                currentUsers[adminIdx].password = defaultPasswordHash;
-                currentUsers[adminIdx].modPerms = defaultAdmin.modPerms;
-                currentUsers[adminIdx].permission = "Administrador";
-            } else {
-                currentUsers.push(defaultAdmin);
-            }
-            users = currentUsers;
-            localStorage.setItem('users', JSON.stringify(users));
+        if (data.calculatedHours <= 0)
+          return showNotification(
+            "O horário de fim deve ser posterior ao de início",
+            "danger",
+          );
+
+        const editId = document.getElementById("editingId").value;
+        const colRef = collection(
+          db,
+          "artifacts",
+          appId,
+          "public",
+          "data",
+          "activities",
+        );
+
+        try {
+          if (editId) {
+            await updateDoc(
+              doc(
+                db,
+                "artifacts",
+                appId,
+                "public",
+                "data",
+                "activities",
+                editId,
+              ),
+              data,
+            );
+            showNotification("Tarefa atualizada!", "success");
+          } else {
+            await addDoc(colRef, data);
+            showNotification("Tarefa registada com sucesso!", "success");
+          }
+          resetForm();
+        } catch (err) {
+          console.error(err);
+          showNotification("Erro ao guardar dados no Firebase", "danger");
+        }
+      });
+
+      window.deleteActivity = async (id) => {
+        if (!currentUser?.modPerms.tabela) return;
+        try {
+          await deleteDoc(
+            doc(db, "artifacts", appId, "public", "data", "activities", id),
+          );
+          showNotification("Atividade removida", "success");
+        } catch (err) {
+          showNotification("Erro ao excluir", "danger");
+        }
+      };
+
+      window.editActivity = (id) => {
+        const act = activities.find((a) => a.id === id);
+        if (!act) return;
+        document.getElementById("description").value = act.description;
+        document.getElementById("startDate").value = act.startDate;
+        document.getElementById("startTime").value = act.startTime;
+        document.getElementById("endTime").value = act.endTime;
+        document.getElementById("extraHours").value = act.extraHours;
+        document.getElementById("editingId").value = act.id;
+        document.getElementById("submitBtn").textContent = "Salvar Alterações";
+        document.getElementById("cancelEdit").style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+
+      els.contractedHoursInput.addEventListener("change", (e) => {
+        if (
+          currentUser?.permission !== "Administrador" ||
+          !currentUser?.modPerms.contrato
+        )
+          return;
+        const val = parseFloat(e.target.value) || 0;
+        updateDoc(
+          doc(db, "artifacts", appId, "public", "data", "settings", "global"),
+          { contractedHours: val },
+        );
+      });
+
+      els.hourlyRateInput.addEventListener("change", (e) => {
+        if (
+          currentUser?.permission !== "Administrador" ||
+          !currentUser?.modPerms.contrato
+        )
+          return;
+        const val = parseFloat(e.target.value) || 0;
+        updateDoc(
+          doc(db, "artifacts", appId, "public", "data", "settings", "global"),
+          { hourlyRate: val },
+        );
+      });
+
+      els.userForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (currentUser?.permission !== "Administrador") return;
+
+        const email = document.getElementById("userEmail").value;
+        const passwordRaw = document.getElementById("userPassword").value;
+        const editId = document.getElementById("editingUserId").value;
+
+        const data = {
+          name: document.getElementById("userName").value,
+          email: email,
+          permission: document.getElementById("userPermission").value,
+          modPerms: {
+            dashboard: document.getElementById("perm_dashboard").checked,
+            registro: document.getElementById("perm_registro").checked,
+            tabela: document.getElementById("perm_tabela").checked,
+            contrato: document.getElementById("perm_contrato").checked,
+            settings: document.getElementById("perm_settings").checked,
+          },
+        };
+
+        if (passwordRaw) {
+          data.password = await hashPassword(passwordRaw);
         }
 
-        let currentUser = null;
-        let activities = JSON.parse(localStorage.getItem('activities')) || [];
-        let contractedHours = parseFloat(localStorage.getItem('contractedHours')) || 40;
-        let hourlyRate = parseFloat(localStorage.getItem('hourlyRate')) || 0;
-
-        const activityForm = document.getElementById('activityForm');
-        const tableBody = document.getElementById('tableBody');
-        const emptyState = document.getElementById('emptyState');
-        const contractedHoursInput = document.getElementById('contractedHoursInput');
-        const hourlyRateInput = document.getElementById('hourlyRateInput');
-        const chartProgressRegular = document.getElementById('chartProgressRegular');
-        const chartProgressExceeding = document.getElementById('chartProgressExceeding');
-        const exceedingTipLabel = document.getElementById('exceedingTipLabel');
-        const percentageText = document.getElementById('percentageText');
-        const consumptionLabel = document.getElementById('consumptionLabel');
-        const submitBtn = document.getElementById('submitBtn');
-        const cancelEditBtn = document.getElementById('cancelEdit');
-        const formTitle = document.getElementById('formTitle');
-        const editingIdInput = document.getElementById('editingId');
-        const userForm = document.getElementById('userForm');
-        const userTableBody = document.getElementById('userTableBody');
-        const userSubmitBtn = document.getElementById('userSubmitBtn');
-        const cancelUserEditBtn = document.getElementById('cancelUserEdit');
-        const editingUserIdInput = document.getElementById('editingUserId');
-
-        // --- INICIALIZAÇÃO ---
-        window.addEventListener('DOMContentLoaded', async () => {
-            syncAdminProfile(); 
-            populateTimeSelects();
-            contractedHoursInput.value = contractedHours;
-            hourlyRateInput.value = hourlyRate;
-            
-            const remembered = localStorage.getItem('rememberedEmail');
-            if (remembered) {
-                document.getElementById('loginEmail').value = remembered;
-                document.getElementById('rememberMe').checked = true;
-            }
-
-            const today = new Date().toISOString().split('T')[0];
-            const startDateEl = document.getElementById('startDate');
-            if (startDateEl) startDateEl.value = today;
-            
-            // Listeners para as regras de senha
-            document.getElementById('loginPassword').addEventListener('input', (e) => updatePasswordRules(e.target.value, 'loginRules'));
-            document.getElementById('userPassword').addEventListener('input', (e) => updatePasswordRules(e.target.value, 'userRules'));
-
-            // LISTENERS DE CANCELAR
-            cancelEditBtn.addEventListener('click', resetForm);
-            cancelUserEditBtn.addEventListener('click', resetUserForm);
-
-            await checkAuth();
-        });
-
-        // --- POPULAR SELETORES DE HORA (30 EM 30 MINUTOS) ---
-        function populateTimeSelects() {
-            const selects = [document.getElementById('startTime'), document.getElementById('endTime')];
-            selects.forEach(select => {
-                if (!select) return;
-                select.innerHTML = '';
-                for (let h = 0; h < 24; h++) {
-                    for (let m = 0; m < 60; m += 30) {
-                        const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                        const option = document.createElement('option');
-                        option.value = time;
-                        option.textContent = time;
-                        select.appendChild(option);
-                    }
-                }
-            });
-            // Definir horários padrão
-            document.getElementById('startTime').value = "09:00";
-            document.getElementById('endTime').value = "10:00";
+        try {
+          if (editId) {
+            await updateDoc(
+              doc(db, "artifacts", appId, "public", "data", "users", editId),
+              data,
+            );
+            showNotification("Utilizador atualizado", "success");
+          } else {
+            if (!passwordRaw)
+              return showNotification(
+                "A senha é obrigatória para novos utilizadores",
+                "danger",
+              );
+            await addDoc(
+              collection(db, "artifacts", appId, "public", "data", "users"),
+              data,
+            );
+            showNotification("Utilizador criado com sucesso", "success");
+          }
+          resetUserForm();
+        } catch (err) {
+          showNotification("Erro ao guardar utilizador", "danger");
         }
+      });
 
-        // --- VALIDAÇÃO DE REGRAS DE SENHA ---
-        function updatePasswordRules(password, containerId) {
-            const rules = {
-                upper: /[A-Z]/.test(password),
-                lower: /[a-z]/.test(password),
-                number: /[0-9]/.test(password),
-                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-            };
+      window.deleteUser = async (id) => {
+        if (currentUser?.permission !== "Administrador") return;
+        if (users.length <= 1)
+          return showNotification(
+            "Não pode excluir o último administrador",
+            "danger",
+          );
+        await deleteDoc(
+          doc(db, "artifacts", appId, "public", "data", "users", id),
+        );
+        showNotification("Utilizador removido", "success");
+      };
 
-            const container = document.getElementById(containerId);
-            if (!container) return;
+      window.editUser = (id) => {
+        const u = users.find((u) => u.id === id);
+        if (!u) return;
+        document.getElementById("userName").value = u.name;
+        document.getElementById("userEmail").value = u.email;
+        document.getElementById("editingUserId").value = u.id;
+        document.getElementById("userPermission").value = u.permission;
+        ["dashboard", "registro", "tabela", "contrato", "settings"].forEach(
+          (p) => {
+            document.getElementById("perm_" + p).checked = !!u.modPerms[p];
+          },
+        );
+        document.getElementById("userSubmitBtn").textContent =
+          "Atualizar Dados";
+        document.getElementById("cancelUserEdit").style.display = "block";
+      };
 
-            let allValid = true;
-            for (const [rule, isValid] of Object.entries(rules)) {
-                const el = container.querySelector(`[data-rule="${rule}"]`);
-                const icon = el.querySelector('.rule-icon');
-                
-                if (isValid) {
-                    el.classList.add('valid');
-                    icon.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                } else {
-                    el.classList.remove('valid');
-                    icon.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
-                    allValid = false;
-                }
-            }
-            return allValid;
-        }
-
-        // --- AUTENTICAÇÃO ---
-        async function checkAuth() {
-            if (isLoggedIn) {
-                syncAdminProfile();
-                const savedEmail = localStorage.getItem('loggedUserEmail');
-                currentUser = users.find(u => u.email === savedEmail);
-                
-                if (!currentUser) {
-                    logoutBtn.click();
-                    return;
-                }
-                
-                if (!currentUser.modPerms) {
-                    currentUser.modPerms = currentUser.permission === "Administrador" 
-                        ? { dashboard: true, registro: true, tabela: true, contrato: true, settings: true }
-                        : { dashboard: true, registro: false, tabela: false, contrato: false, settings: false };
-                }
-                
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appContent').style.display = 'block';
-                
-                switchView('dashboard');
-                applyPermissions(); 
-                renderAll();
-                renderUsers();
-            } else {
-                document.getElementById('loginScreen').style.display = 'flex';
-                document.getElementById('appContent').style.display = 'none';
-                currentUser = null;
-                updatePasswordRules('', 'loginRules');
-            }
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            const remember = document.getElementById('rememberMe').checked;
-            
-            syncAdminProfile();
-            const userProfile = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-            
-            if (!userProfile) {
-                showNotification("E-mail não registado.", "danger");
-                return;
-            }
-
-            const currentHashed = await hashPassword(password);
-            if (userProfile.password !== currentHashed) {
-                showNotification("Senha incorreta.", "danger");
-                return;
-            }
-
-            if (remember) {
-                localStorage.setItem('rememberedEmail', email);
-            } else {
-                localStorage.removeItem('rememberedEmail');
-            }
-
-            isLoggedIn = true;
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('loggedUserEmail', userProfile.email);
-            showNotification("Acesso autorizado!", "success");
-            document.getElementById('loginPassword').value = '';
-            await checkAuth();
-        });
-
-        const logoutBtn = document.getElementById('logoutBtn');
-        logoutBtn.addEventListener('click', () => {
-            isLoggedIn = false;
-            localStorage.setItem('isLoggedIn', 'false');
-            localStorage.removeItem('loggedUserEmail');
-            document.getElementById('loginPassword').value = '';
-            if (!localStorage.getItem('rememberedEmail')) {
-                document.getElementById('loginEmail').value = '';
-            }
-            checkAuth();
-        });
-
-        // --- PERMISSÕES E LAYOUT ---
-        function applyPermissions() {
-            if (!currentUser) return;
-            
-            const isGuest = currentUser.permission !== "Administrador";
-            const perms = { ...currentUser.modPerms };
-            
-            if (isGuest) {
-                perms.settings = false;
-                perms.registro = false;
-                perms.contrato = false;
-                perms.tabela = false; 
-            }
-
-            const settingsBtn = document.getElementById('settingsBtn');
-            if (settingsBtn) settingsBtn.style.display = perms.settings ? 'flex' : 'none';
-            
-            contractedHoursInput.disabled = !perms.contrato;
-            hourlyRateInput.disabled = !perms.contrato;
-
-            const regPanel = document.getElementById('registrationFormPanel');
-            const mainContent = document.querySelector('.main-content');
-            const visualCard = document.querySelector('.visual-card');
-            const tableContainer = document.querySelector('.table-container');
-            const dashboardView = document.getElementById('dashboardView');
-
-            if (perms.registro) {
-                regPanel.style.display = 'block';
-                mainContent.classList.remove('no-form-layout');
-                mainContent.appendChild(regPanel);
-                mainContent.appendChild(visualCard);
-                dashboardView.appendChild(tableContainer);
-            } else {
-                regPanel.style.display = 'none';
-                mainContent.classList.add('no-form-layout');
-                mainContent.appendChild(visualCard);
-                mainContent.appendChild(tableContainer);
-            }
-        }
-
-        function switchView(viewName) {
-            if (viewName === 'settings' && (!currentUser || currentUser.permission !== 'Administrador')) {
-                showNotification("Acesso negado.", "danger");
-                return;
-            }
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            const targetView = document.getElementById(viewName + 'View');
-            if(targetView) targetView.classList.add('active');
-            document.getElementById('contractControl').style.display = viewName === 'dashboard' ? 'flex' : 'none';
-        }
-
-        // --- GESTÃO DE HORAS ---
-        contractedHoursInput.addEventListener('change', (e) => {
-            if (!currentUser || currentUser.permission !== 'Administrador') return;
-            contractedHours = parseFloat(e.target.value) || 0;
-            localStorage.setItem('contractedHours', contractedHours);
+      // --- HELPERS ---
+      const checkAppAuth = async () => {
+        if (isLoggedIn) {
+          const email = localStorage.getItem("loggedUserEmail");
+          currentUser = users.find((u) => u.email === email);
+          if (currentUser) {
+            els.loginScreen.style.display = "none";
+            els.appContent.style.display = "block";
+            applyPermissions();
             renderAll();
-        });
-
-        hourlyRateInput.addEventListener('change', (e) => {
-            if (!currentUser || currentUser.permission !== 'Administrador') return;
-            hourlyRate = parseFloat(e.target.value) || 0;
-            localStorage.setItem('hourlyRate', hourlyRate);
-            renderAll();
-        });
-
-        activityForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (!currentUser || !currentUser.modPerms.registro || currentUser.permission !== 'Administrador') {
-                showNotification("Erro: Sem permissão.", "danger");
-                return;
-            }
-            const description = document.getElementById('description').value;
-            const startDate = document.getElementById('startDate').value;
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
-            const extraHours = parseFloat(document.getElementById('extraHours').value) || 0;
-            const editingId = editingIdInput.value;
-            if (endTime <= startTime) {
-                showNotification("Hora fim posterior.", "danger");
-                return;
-            }
-            const [sH, sM] = startTime.split(':').map(Number);
-            const [eH, eM] = endTime.split(':').map(Number);
-            const calculatedHours = ((eH * 60 + eM) - (sH * 60 + sM)) / 60;
-            const activityData = { description, startDate, startTime, endTime, calculatedHours, extraHours };
-            if (editingId) {
-                const index = activities.findIndex(a => a.id == editingId);
-                if (index !== -1) activities[index] = { ...activities[index], ...activityData };
-                showNotification("Atualizado!", "success");
-            } else {
-                activities.push({ id: Date.now(), ...activityData });
-                showNotification("Registrado!", "success");
-            }
-            localStorage.setItem('activities', JSON.stringify(activities));
-            renderAll();
-            resetForm();
-            document.getElementById('startDate').value = startDate; 
-        });
-
-        function deleteActivity(id) {
-            if (!currentUser || !currentUser.modPerms.tabela || currentUser.permission !== 'Administrador') return;
-            activities = activities.filter(a => a.id !== id);
-            localStorage.setItem('activities', JSON.stringify(activities));
-            renderAll();
-            showNotification("Removido.", "danger");
+          } else {
+            logout();
+          }
         }
+      };
 
-        function editActivity(id) {
-            if (!currentUser || !currentUser.modPerms.tabela || currentUser.permission !== 'Administrador') return;
-            const act = activities.find(a => a.id === id);
-            if (!act) return;
-            document.getElementById('description').value = act.description;
-            document.getElementById('startDate').value = act.startDate;
-            document.getElementById('startTime').value = act.startTime;
-            document.getElementById('endTime').value = act.endTime;
-            document.getElementById('extraHours').value = act.extraHours;
-            editingIdInput.value = act.id;
-            submitBtn.textContent = "Salvar Alterações";
-            cancelEditBtn.style.display = "block";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+      const logout = () => {
+        isLoggedIn = false;
+        localStorage.setItem("isLoggedIn", "false");
+        localStorage.removeItem("loggedUserEmail");
+        els.loginScreen.style.display = "flex";
+        els.appContent.style.display = "none";
+      };
+
+      els.loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("loginEmail").value.trim();
+        const pass = document.getElementById("loginPassword").value;
+        const hashed = await hashPassword(pass);
+
+        const found = users.find(
+          (u) =>
+            u.email.toLowerCase() === email.toLowerCase() &&
+            u.password === hashed,
+        );
+        if (found) {
+          isLoggedIn = true;
+          localStorage.setItem("isLoggedIn", "true");
+          localStorage.setItem("loggedUserEmail", found.email);
+          currentUser = found;
+          showNotification("Sessão iniciada!", "success");
+          checkAppAuth();
+        } else {
+          showNotification("E-mail ou senha incorretos", "danger");
         }
+      });
 
-        function resetForm() {
-            activityForm.reset();
-            editingIdInput.value = "";
-            submitBtn.textContent = "Adicionar Atividade";
-            cancelEditBtn.style.display = "none";
-            // Repor horários padrão nos seletores
-            document.getElementById('startTime').value = "09:00";
-            document.getElementById('endTime').value = "10:00";
-        }
+      document.getElementById("logoutBtn").onclick = logout;
 
-        // --- GESTÃO DE USUÁRIOS ---
-        userForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (currentUser.permission !== 'Administrador') return;
+      async function hashPassword(password) {
+        const msgUint8 = new TextEncoder().encode(password);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+        return Array.from(new Uint8Array(hashBuffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
 
-            const name = document.getElementById('userName').value;
-            const email = document.getElementById('userEmail').value;
-            const password = document.getElementById('userPassword').value;
-            const permission = document.getElementById('userPermission').value;
-            const editId = editingUserIdInput.value;
-            const modPerms = {
-                dashboard: document.getElementById('perm_dashboard').checked,
-                registro: document.getElementById('perm_registro').checked,
-                tabela: document.getElementById('perm_tabela').checked,
-                contrato: document.getElementById('perm_contrato').checked,
-                settings: document.getElementById('perm_settings').checked
-            };
+      function showNotification(msg, type) {
+        els.notification.textContent = msg;
+        els.notification.className =
+          type === "success" ? "bg-success show" : "bg-danger show";
+        setTimeout(() => els.notification.classList.remove("show"), 3000);
+      }
 
-            const hashedPass = password ? await hashPassword(password) : null;
-            if (editId) {
-                const idx = users.findIndex(u => u.id == editId);
-                const updated = { ...users[idx], name, email, permission, modPerms };
-                if (hashedPass) updated.password = hashedPass;
-                users[idx] = updated;
-                showNotification("Atualizado!", "success");
-            } else {
-                if (!password) {
-                    showNotification("Senha obrigatória.", "danger");
-                    return;
-                }
-                users.push({ id: Date.now(), name, email, password: hashedPass, permission, modPerms });
-                showNotification("Criado!", "success");
-            }
-            localStorage.setItem('users', JSON.stringify(users));
-            renderUsers();
-            resetUserForm();
-        });
+      function resetForm() {
+        els.activityForm.reset();
+        document.getElementById("editingId").value = "";
+        document.getElementById("submitBtn").textContent =
+          "Adicionar Atividade";
+        document.getElementById("cancelEdit").style.display = "none";
+        document.getElementById("startTime").value = "09:00";
+        document.getElementById("endTime").value = "10:00";
+        document.getElementById("startDate").value = new Date()
+          .toISOString()
+          .split("T")[0];
+      }
 
-        function deleteUser(id) {
-            if (currentUser.permission !== 'Administrador') return;
-            if (users.length === 1) {
-                showNotification("Impossível remover único usuário.", "danger");
-                return;
-            }
-            users = users.filter(u => u.id !== id);
-            localStorage.setItem('users', JSON.stringify(users));
-            renderUsers();
-            showNotification("Removido.", "danger");
-        }
+      function resetUserForm() {
+        els.userForm.reset();
+        document.getElementById("editingUserId").value = "";
+        document.getElementById("userSubmitBtn").textContent = "Salvar Usuário";
+        document.getElementById("cancelUserEdit").style.display = "none";
+      }
 
-        function resetUserForm() {
-            userForm.reset();
-            editingUserIdInput.value = "";
-            userSubmitBtn.textContent = "Adicionar Usuário";
-            cancelUserEditBtn.style.display = "none";
-            ['dashboard', 'registro', 'tabela', 'contrato', 'settings'].forEach(p => {
-                const el = document.getElementById('perm_' + p);
-                if(el) el.checked = false;
-            });
-            updatePasswordRules('', 'userRules');
-        }
+      // --- RENDERING ---
+      function renderAll() {
+        els.tableBody.innerHTML = "";
+        const actionHeader = document.getElementById("actionHeader");
+        const hasTabPerm = currentUser?.modPerms.tabela;
+        if (actionHeader)
+          actionHeader.style.display = hasTabPerm ? "table-cell" : "none";
 
-        function editUser(id) {
-            if (currentUser.permission !== 'Administrador') return;
-            const u = users.find(u => u.id === id);
-            document.getElementById('userName').value = u.name;
-            document.getElementById('userEmail').value = u.email;
-            document.getElementById('editingUserId').value = u.id;
-            document.getElementById('userPermission').value = u.permission;
-            ['dashboard', 'registro', 'tabela', 'contrato', 'settings'].forEach(p => {
-                const el = document.getElementById('perm_' + p);
-                if(el) el.checked = !!u.modPerms[p];
-            });
-            userSubmitBtn.textContent = "Atualizar Dados";
-            cancelUserEditBtn.style.display = "block";
-            updatePasswordRules('', 'userRules');
-        }
-
-        function renderUsers() {
-            userTableBody.innerHTML = '';
-            users.forEach(u => {
-                const tr = document.createElement('tr');
-                const badgeClass = u.permission === 'Administrador' ? 'badge-admin' : 'badge-guest';
-                const active = Object.keys(u.modPerms || {}).filter(k => u.modPerms[k]).length;
-                tr.innerHTML = `
-                    <td style="text-align: left; font-weight: 600;">${u.name}</td>
-                    <td style="text-align: center;">${u.email}</td>
-                    <td style="text-align: center;"><span class="badge ${badgeClass}">${u.permission}</span></td>
-                    <td style="text-align: center; font-size: 0.75rem;">${active} módulos</td>
-                    <td style="text-align: center;">
-                        <button class="action-btn btn-edit" onclick="editUser(${u.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                        <button class="action-btn btn-delete" onclick="deleteUser(${u.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4 a2 2 0 0 1 2 2v2"></path></svg></button>
-                    </td>
-                `;
-                userTableBody.appendChild(tr);
+        if (activities.length === 0) {
+          els.emptyState.style.display = "block";
+        } else {
+          els.emptyState.style.display = "none";
+          activities
+            .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+            .forEach((act) => {
+              const tr = document.createElement("tr");
+              const dateF = new Date(
+                act.startDate + "T00:00:00",
+              ).toLocaleDateString("pt-BR");
+              tr.innerHTML = `
+              <td style="font-weight: 600; text-align: left;">${act.description}</td>
+              <td style="text-align: center;"><div style="font-size: 0.75rem;">${dateF}</div><div>${act.startTime} - ${act.endTime}</div></td>
+              <td style="text-align: center; font-weight: 700;">${formatTime(act.calculatedHours)}</td>
+              <td style="text-align: center; color: var(--secondary);">${act.extraHours > 0 ? formatTime(act.extraHours) : "-"}</td>
+              ${
+                hasTabPerm
+                  ? `<td style="text-align: center;">
+                <button class="action-btn btn-edit" onclick="editActivity('${act.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                <button class="action-btn btn-delete" onclick="deleteActivity('${act.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4 a2 2 0 0 1 2 2v2"></path></svg></button>
+              </td>`
+                  : ""
+              }
+            `;
+              els.tableBody.appendChild(tr);
             });
         }
+        renderStats();
+      }
 
-        // --- GERAÇÃO DE PDF ---
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-            
-            const sumCalculated = activities.reduce((acc, curr) => acc + curr.calculatedHours, 0);
-            const sumExtraField = activities.reduce((acc, curr) => acc + curr.extraHours, 0);
-            const overflowRegular = Math.max(0, sumCalculated - contractedHours);
-            const totalExceeding = sumExtraField + overflowRegular;
-            
-            const amountContractedTotal = contractedHours * hourlyRate;
-            const amountConsumedBRL = sumCalculated * hourlyRate;
-            const amountExceedingBRL = totalExceeding * hourlyRate;
-            const grandTotalFinal = amountConsumedBRL + amountExceedingBRL;
+      function renderUsers() {
+        els.userTableBody.innerHTML = "";
+        users.forEach((u) => {
+          const tr = document.createElement("tr");
+          const badgeClass =
+            u.permission === "Administrador" ? "badge-admin" : "badge-guest";
+          tr.innerHTML = `
+            <td style="text-align: left; font-weight: 600;">${u.name}</td>
+            <td style="text-align: center;">${u.email}</td>
+            <td style="text-align: center;"><span class="badge ${badgeClass}">${u.permission}</span></td>
+            <td style="text-align: center;">
+              <button class="action-btn btn-edit" onclick="editUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+              <button class="action-btn btn-delete" onclick="deleteUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4 a2 2 0 0 1 2 2v2"></path></svg></button>
+            </td>
+          `;
+          els.userTableBody.appendChild(tr);
+        });
+      }
 
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(22);
-            doc.setTextColor(37, 99, 235);
-            doc.text("LauConsult", 20, 25);
-            doc.setFontSize(14);
-            doc.setTextColor(100, 116, 139);
-            doc.text("Relatório de Gestão de Horas", 20, 33);
-            doc.setFontSize(10);
-            doc.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')}`, 20, 40);
-            doc.setLineWidth(0.5);
-            doc.setDrawColor(226, 232, 240);
-            doc.line(20, 45, 190, 45);
+      function renderStats() {
+        const sumCalculated = activities.reduce(
+          (acc, curr) => acc + curr.calculatedHours,
+          0,
+        );
+        const sumExtraField = activities.reduce(
+          (acc, curr) => acc + curr.extraHours,
+          0,
+        );
+        const overflow = Math.max(
+          0,
+          sumCalculated - appSettings.contractedHours,
+        );
+        const exceeding = sumExtraField + overflow;
+        const remaining = Math.max(
+          0,
+          appSettings.contractedHours - sumCalculated,
+        );
+        const formatter = new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
 
-            doc.setFontSize(12);
-            doc.setTextColor(30, 41, 59);
-            doc.text("1. Resumo do Contrato", 20, 55);
-            doc.setFont("helvetica", "normal");
-            doc.text("Horas Contratadas:", 25, 65);
-            doc.text(formatTime(contractedHours), 140, 65, { align: 'right' });
-            doc.text("Valor da Hora:", 25, 72);
-            doc.text(formatter.format(hourlyRate), 140, 72, { align: 'right' });
-            doc.setFont("helvetica", "bold");
-            doc.text("Valor Total do Contrato:", 25, 79);
-            doc.text(formatter.format(amountContractedTotal), 140, 79, { align: 'right' });
+        document.getElementById("statContracted").textContent = formatTime(
+          appSettings.contractedHours,
+        );
+        document.getElementById("statConsumed").textContent =
+          formatTime(sumCalculated);
+        document.getElementById("statExceeding").textContent =
+          formatTime(exceeding);
+        document.getElementById("statRemaining").textContent =
+          formatTime(remaining);
 
-            doc.text("2. Horas Consumidas (Regulares)", 20, 95);
-            doc.setFont("helvetica", "normal");
-            doc.text("Total de Horas Realizadas:", 25, 105);
-            doc.text(formatTime(sumCalculated), 140, 105, { align: 'right' });
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(245, 158, 11);
-            doc.text("Valor Total de Consumo:", 25, 112);
-            doc.text(formatter.format(amountConsumedBRL), 140, 112, { align: 'right' });
+        document.getElementById("statContractedValue").textContent =
+          formatter.format(
+            appSettings.contractedHours * appSettings.hourlyRate,
+          );
+        document.getElementById("amountConsumedBRL").textContent =
+          formatter.format(sumCalculated * appSettings.hourlyRate);
+        document.getElementById("amountRemainingBRL").textContent =
+          formatter.format(remaining * appSettings.hourlyRate);
+        document.getElementById("amountExceedingBRL").textContent =
+          formatter.format(exceeding * appSettings.hourlyRate);
 
-            doc.setTextColor(30, 41, 59);
-            doc.text("3. Horas Excedentes e Extras", 20, 128);
-            doc.setFont("helvetica", "normal");
-            doc.text("Total de Horas Excedentes:", 25, 138);
-            doc.text(formatTime(totalExceeding), 140, 138, { align: 'right' });
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(239, 68, 68);
-            doc.text("Valor Total Excedente:", 25, 145);
-            doc.text(formatter.format(amountExceedingBRL), 140, 145, { align: 'right' });
+        // UI Charts
+        const perc =
+          Math.min(
+            100,
+            Math.round((sumCalculated / appSettings.contractedHours) * 100),
+          ) || 0;
+        const dashReg = document.getElementById("chartProgressRegular");
+        if (dashReg)
+          dashReg.style.strokeDashoffset = 471.2 - (perc / 100) * 471.2;
 
-            doc.setDrawColor(37, 99, 235);
-            doc.setLineWidth(1);
-            doc.line(20, 160, 190, 160);
-            doc.setTextColor(37, 99, 235);
-            doc.setFontSize(16);
-            doc.text("TOTAL GERAL A PAGAR:", 20, 175);
-            doc.text(formatter.format(grandTotalFinal), 190, 175, { align: 'right' });
-
-            doc.save(`Relatorio_LauConsult_${new Date().toISOString().split('T')[0]}.pdf`);
-            showNotification("PDF gerado com sucesso!", "success");
+        const excPerc =
+          Math.min(
+            100,
+            Math.round((exceeding / appSettings.contractedHours) * 100),
+          ) || 0;
+        const dashExc = document.getElementById("chartProgressExceeding");
+        if (dashExc) {
+          dashExc.style.strokeDashoffset = 596.9 - (excPerc / 100) * 596.9;
+          dashExc.style.stroke =
+            exceeding > 0 ? "var(--warning)" : "transparent";
         }
 
-        // --- RENDERIZAÇÃO DASHBOARD ---
-        function renderAll() {
-            if (!isLoggedIn) return;
-            const actionHeader = document.getElementById('actionHeader');
-            const hasTabPerm = currentUser && currentUser.permission === "Administrador" && currentUser.modPerms.tabela;
-            
-            if (actionHeader) actionHeader.style.display = hasTabPerm ? 'table-cell' : 'none';
-            tableBody.innerHTML = '';
-            if (activities.length === 0) {
-                if (emptyState) emptyState.style.display = 'block';
-            } else {
-                if (emptyState) emptyState.style.display = 'none';
-                const sorted = [...activities].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-                sorted.forEach(act => {
-                    const tr = document.createElement('tr');
-                    const dateF = new Date(act.startDate + 'T00:00:00').toLocaleDateString('pt-BR');
-                    tr.innerHTML = `
-                        <td style="font-weight: 600; text-align: left;">${act.description}</td>
-                        <td style="text-align: center;"><div style="font-size: 0.75rem;">${dateF}</div><div>${act.startTime} - ${act.endTime}</div></td>
-                        <td style="text-align: center; font-weight: 700;">${formatTime(act.calculatedHours)}</td>
-                        <td style="text-align: center; color: var(--secondary);">${act.extraHours > 0 ? formatTime(act.extraHours) : '-'}</td>
-                        ${hasTabPerm ? `<td style="text-align: center;"><button class="action-btn btn-edit" onclick="editActivity(${act.id})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button><button class="action-btn btn-delete" onclick="deleteActivity(${act.id})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4 a2 2 0 0 1 2 2v2"></path></svg></button></td>` : ''}
-                    `;
-                    tableBody.appendChild(tr);
-                });
+        document.getElementById("percentageText").textContent = `${perc}%`;
+        document.getElementById("consumptionLabel").textContent =
+          `${formatTime(sumCalculated)} de ${formatTime(appSettings.contractedHours)}`;
+      }
+
+      function formatTime(decimalHours) {
+        const h = Math.floor(decimalHours);
+        const m = Math.round((decimalHours - h) * 60);
+        return `${h}h${m > 0 ? m + "m" : ""}`;
+      }
+
+      function applyPermissions() {
+        if (!currentUser) return;
+        const perms = currentUser.modPerms;
+        document.getElementById("settingsBtn").style.display = perms.settings
+          ? "flex"
+          : "none";
+        els.contractedHoursInput.disabled = !perms.contrato;
+        els.hourlyRateInput.disabled = !perms.contrato;
+        document.getElementById("registrationFormPanel").style.display =
+          perms.registro ? "block" : "none";
+        document
+          .querySelector(".main-content")
+          .classList.toggle("no-form-layout", !perms.registro);
+      }
+
+      window.switchView = (viewName) => {
+        document
+          .querySelectorAll(".view-section")
+          .forEach((v) => v.classList.remove("active"));
+        document.getElementById(viewName + "View").classList.add("active");
+        document.getElementById("contractControl").style.display =
+          viewName === "dashboard" ? "flex" : "none";
+      };
+
+      // Inicia o processo de Autenticação
+      populateTimeSelects();
+      initAuth();
+
+      function populateTimeSelects() {
+        const selects = [
+          document.getElementById("startTime"),
+          document.getElementById("endTime"),
+        ];
+        selects.forEach((s) => {
+          if (!s) return;
+          s.innerHTML = "";
+          for (let h = 0; h < 24; h++) {
+            for (let m = 0; m < 60; m += 30) {
+              const t = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+              const opt = document.createElement("option");
+              opt.value = t;
+              opt.textContent = t;
+              s.appendChild(opt);
             }
-            renderStats();
-        }
+          }
+        });
+        document.getElementById("startTime").value = "09:00";
+        document.getElementById("endTime").value = "10:00";
+        document.getElementById("startDate").value = new Date()
+          .toISOString()
+          .split("T")[0];
+      }
 
-        function renderStats() {
-            const sumCalculated = activities.reduce((acc, curr) => acc + curr.calculatedHours, 0);
-            const sumExtraField = activities.reduce((acc, curr) => acc + curr.extraHours, 0);
-            const overflowRegular = Math.max(0, sumCalculated - contractedHours);
-            const exceedingDisplayValue = sumExtraField + overflowRegular;
-            const remainingDisplayValue = Math.max(0, contractedHours - sumCalculated);
-            const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+      // PDF Global compatibility
+      window.executePDFGeneration = () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const formatter = new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
 
-            document.getElementById('statContracted').textContent = formatTime(contractedHours);
-            document.getElementById('statConsumed').textContent = formatTime(sumCalculated);
-            document.getElementById('statExceeding').textContent = formatTime(exceedingDisplayValue);
-            document.getElementById('statRemaining').textContent = formatTime(remainingDisplayValue);
-            document.getElementById('statContractedValue').textContent = formatter.format(contractedHours * hourlyRate);
-            document.getElementById('amountConsumedBRL').textContent = formatter.format(sumCalculated * hourlyRate);
-            document.getElementById('amountRemainingBRL').textContent = formatter.format(remainingDisplayValue * hourlyRate);
-            document.getElementById('amountExceedingBRL').textContent = formatter.format(exceedingDisplayValue * hourlyRate);
+        doc.setFont("helvetica", "bold");
+        doc.text("LauConsult - Relatório de Horas", 20, 20);
+        doc.setFontSize(10);
+        doc.text(`Emitido em: ${new Date().toLocaleDateString()}`, 20, 28);
 
-            const remCard = document.getElementById('remainingCard');
-            const isOverContract = sumCalculated > contractedHours;
-            if (remCard) {
-                remCard.style.borderLeftColor = isOverContract ? 'var(--danger)' : 'var(--success)';
-                const valEl = remCard.querySelector('.card-value');
-                if (valEl) valEl.style.color = isOverContract ? 'var(--danger)' : 'var(--text-main)';
-            }
+        doc.text("Resumo:", 20, 40);
+        doc.setFont("helvetica", "normal");
+        doc.text(
+          `Horas Contratadas: ${formatTime(window.contractHoursVal)}`,
+          25,
+          48,
+        );
+        doc.text(`Valor da Hora: ${formatter.format(window.rateVal)}`, 25, 54);
 
-            const percentageRegular = Math.min(Math.round((sumCalculated / contractedHours) * 100), 100) || 0;
-            if (chartProgressRegular) {
-                chartProgressRegular.style.strokeDasharray = 471.2;
-                chartProgressRegular.style.strokeDashoffset = 471.2 - (percentageRegular / 100) * 471.2;
-                chartProgressRegular.style.stroke = percentageRegular >= 100 ? 'var(--danger)' : percentageRegular > 80 ? 'var(--warning)' : 'var(--primary)';
-            }
-            
-            const percentageExceeding = Math.min(Math.round((exceedingDisplayValue / contractedHours) * 100), 100) || 0;
-            if (chartProgressExceeding) {
-                chartProgressExceeding.style.strokeDasharray = 596.9;
-                chartProgressExceeding.style.strokeDashoffset = 596.9 - (percentageExceeding / 100) * 596.9;
-                chartProgressExceeding.style.stroke = exceedingDisplayValue > 0 ? 'var(--warning)' : 'transparent';
-                
-                if (exceedingDisplayValue > 0 && exceedingTipLabel) {
-                    const rad = (percentageExceeding * 3.6) * (Math.PI / 180);
-                    const x = 130 + 95 * Math.cos(rad);
-                    const y = 130 + 95 * Math.sin(rad);
-                    exceedingTipLabel.setAttribute('x', x);
-                    exceedingTipLabel.setAttribute('y', y);
-                    exceedingTipLabel.setAttribute('text-anchor', x > 130 ? 'start' : 'end');
-                    exceedingTipLabel.setAttribute('transform', `rotate(90, ${x}, ${y})`);
-                    exceedingTipLabel.setAttribute('dx', x > 130 ? 12 : -12);
-                    exceedingTipLabel.setAttribute('dy', "6");
-                    exceedingTipLabel.textContent = `+${formatTime(exceedingDisplayValue)}`;
-                    exceedingTipLabel.style.display = 'block';
-                } else if (exceedingTipLabel) {
-                    exceedingTipLabel.style.display = 'none';
-                }
-            }
+        let y = 70;
+        doc.setFont("helvetica", "bold");
+        doc.text("Tarefa", 20, y);
+        doc.text("Data", 100, y);
+        doc.text("Horas", 160, y);
+        y += 10;
+        doc.setFont("helvetica", "normal");
 
-            if(percentageText) percentageText.textContent = `${percentageRegular}%`;
-            if(consumptionLabel) consumptionLabel.textContent = `${formatTime(sumCalculated)} de ${formatTime(contractedHours)}`;
-        }
+        window.activitiesData.forEach((a) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(a.description.substring(0, 30), 20, y);
+          doc.text(a.startDate, 100, y);
+          doc.text(formatTime(a.calculatedHours), 160, y);
+          y += 8;
+        });
 
-        function formatTime(decimalHours) {
-            const h = Math.floor(decimalHours);
-            const m = Math.round((decimalHours - h) * 60);
-            return `${h}h${m > 0 ? m + 'm' : ''}`;
-        }
-
-        function showNotification(msg, type) {
-            const el = document.getElementById('notification');
-            el.textContent = msg;
-            el.className = type === 'success' ? 'bg-success show' : 'bg-danger show';
-            setTimeout(() => el.classList.remove('show'), 3000);
-        }
+        doc.save(`Relatorio_LauConsult_${new Date().getTime()}.pdf`);
+      };
     </script>
-</body>
+  </body>
 </html>
