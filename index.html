@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LauConsult - Gestão de Horas</title>
+    <title>LauConsult - Controle & Gestão</title>
     <!-- Importando a fonte Inter para garantir o visual moderno -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -741,7 +741,7 @@
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
             </div>
-            <h2>Bem-vindo de volta</h2>
+            <h2>Bem-vindo</h2>
             <p>Entre na sua conta LauConsult</p>
           </div>
 
@@ -1318,7 +1318,6 @@
       } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
       // --- CONFIGURATION ---
-      // A chave de API agora é preenchida corretamente para evitar o erro auth/invalid-api-key
       const firebaseConfig = {
         apiKey: "AIzaSyBGd373XPQTBV4U4A0T0Ow-8f4IKdZrcaE",
         authDomain: "lauconsultlr-fabf7.firebaseapp.com",
@@ -1328,7 +1327,6 @@
         appId: "1:179125915794:web:7b1cfd1eefa0c6a3cdd64b",
       };
 
-      // Inicialização segura do Firebase
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
@@ -1356,21 +1354,20 @@
         contractedHoursInput: document.getElementById("contractedHoursInput"),
         hourlyRateInput: document.getElementById("hourlyRateInput"),
         notification: document.getElementById("notification"),
+        loginEmail: document.getElementById("loginEmail"),
+        loginPassword: document.getElementById("loginPassword"),
+        rememberMe: document.getElementById("rememberMe"),
       };
 
       // --- AUTHENTICATION FLOW ---
       const initAuth = async () => {
         try {
-          // Verifica se há um token de ambiente ou o token anónimo fornecido
           const token =
             typeof __initial_auth_token !== "undefined" && __initial_auth_token
               ? __initial_auth_token
               : "FsaSir6jFeSESDbxh9JFOOYl9393";
-
           if (token) {
-            // Tenta autenticar com o token fornecido (Custom Token)
             await signInWithCustomToken(auth, token).catch(async (err) => {
-              // Se falhar o custom token, tenta anónimo padrão
               await signInAnonymously(auth);
             });
           } else {
@@ -1385,7 +1382,6 @@
         }
       };
 
-      // Executa ouvintes apenas após autenticação bem sucedida (Regra 3)
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           await setupFirestoreListeners(user);
@@ -1396,8 +1392,6 @@
       // --- FIRESTORE SYNC ---
       const setupFirestoreListeners = async (user) => {
         if (!user) return;
-
-        // Caminhos seguindo a regra /artifacts/{appId}/public/data/{collection} (Regra 1)
         const activitiesRef = collection(
           db,
           "artifacts",
@@ -1424,7 +1418,6 @@
           "global",
         );
 
-        // Snapshot: Atividades - Sincronização em tempo real
         onSnapshot(
           activitiesRef,
           (snapshot) => {
@@ -1434,12 +1427,9 @@
             }));
             renderAll();
           },
-          (err) => {
-            console.error("Erro ao ler atividades:", err);
-          },
+          (err) => console.error("Erro ao ler atividades:", err),
         );
 
-        // Snapshot: Usuários
         onSnapshot(
           usersRef,
           (snapshot) => {
@@ -1447,12 +1437,9 @@
             if (users.length === 0) syncInitialAdmin();
             renderUsers();
           },
-          (err) => {
-            console.error("Erro ao ler utilizadores:", err);
-          },
+          (err) => console.error("Erro ao ler utilizadores:", err),
         );
 
-        // Snapshot: Configurações Globais (Contrato e Valor)
         onSnapshot(
           settingsRef,
           (docSnap) => {
@@ -1465,9 +1452,7 @@
               setDoc(settingsRef, appSettings);
             }
           },
-          (err) => {
-            console.error("Erro ao ler definições:", err);
-          },
+          (err) => console.error("Erro ao ler definições:", err),
         );
       };
 
@@ -1525,21 +1510,9 @@
         data.calculatedHours = (eH * 60 + eM - (sH * 60 + sM)) / 60;
 
         if (data.calculatedHours <= 0)
-          return showNotification(
-            "O horário de fim deve ser posterior ao de início",
-            "danger",
-          );
+          return showNotification("Horário fim inválido", "danger");
 
         const editId = document.getElementById("editingId").value;
-        const colRef = collection(
-          db,
-          "artifacts",
-          appId,
-          "public",
-          "data",
-          "activities",
-        );
-
         try {
           if (editId) {
             await updateDoc(
@@ -1556,13 +1529,22 @@
             );
             showNotification("Tarefa atualizada!", "success");
           } else {
-            await addDoc(colRef, data);
-            showNotification("Tarefa registada com sucesso!", "success");
+            await addDoc(
+              collection(
+                db,
+                "artifacts",
+                appId,
+                "public",
+                "data",
+                "activities",
+              ),
+              data,
+            );
+            showNotification("Tarefa registada!", "success");
           }
           resetForm();
         } catch (err) {
-          console.error(err);
-          showNotification("Erro ao guardar dados no Firebase", "danger");
+          showNotification("Erro ao guardar dados", "danger");
         }
       });
 
@@ -1572,7 +1554,7 @@
           await deleteDoc(
             doc(db, "artifacts", appId, "public", "data", "activities", id),
           );
-          showNotification("Atividade removida", "success");
+          showNotification("Removida", "success");
         } catch (err) {
           showNotification("Erro ao excluir", "danger");
         }
@@ -1639,9 +1621,7 @@
           },
         };
 
-        if (passwordRaw) {
-          data.password = await hashPassword(passwordRaw);
-        }
+        if (passwordRaw) data.password = await hashPassword(passwordRaw);
 
         try {
           if (editId) {
@@ -1652,15 +1632,12 @@
             showNotification("Utilizador atualizado", "success");
           } else {
             if (!passwordRaw)
-              return showNotification(
-                "A senha é obrigatória para novos utilizadores",
-                "danger",
-              );
+              return showNotification("Senha obrigatória", "danger");
             await addDoc(
               collection(db, "artifacts", appId, "public", "data", "users"),
               data,
             );
-            showNotification("Utilizador criado com sucesso", "success");
+            showNotification("Utilizador criado", "success");
           }
           resetUserForm();
         } catch (err) {
@@ -1706,11 +1683,24 @@
           if (currentUser) {
             els.loginScreen.style.display = "none";
             els.appContent.style.display = "block";
+
+            switchView("dashboard");
+
             applyPermissions();
             renderAll();
           } else {
             logout();
           }
+        } else {
+          const rememberedEmail = localStorage.getItem("rememberedEmail");
+          if (rememberedEmail) {
+            els.loginEmail.value = rememberedEmail;
+            els.rememberMe.checked = true;
+          } else {
+            els.loginEmail.value = "";
+          }
+          els.loginPassword.value = "";
+          updatePasswordRules("", "loginRules");
         }
       };
 
@@ -1718,14 +1708,25 @@
         isLoggedIn = false;
         localStorage.setItem("isLoggedIn", "false");
         localStorage.removeItem("loggedUserEmail");
+
+        if (!els.rememberMe.checked) {
+          els.loginEmail.value = "";
+          localStorage.removeItem("rememberedEmail");
+        }
+        els.loginPassword.value = "";
+
+        updatePasswordRules("", "loginRules");
+
+        switchView("dashboard");
+
         els.loginScreen.style.display = "flex";
         els.appContent.style.display = "none";
       };
 
       els.loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const email = document.getElementById("loginEmail").value.trim();
-        const pass = document.getElementById("loginPassword").value;
+        const email = els.loginEmail.value.trim();
+        const pass = els.loginPassword.value;
         const hashed = await hashPassword(pass);
 
         const found = users.find(
@@ -1734,26 +1735,70 @@
             u.password === hashed,
         );
         if (found) {
+          if (els.rememberMe.checked) {
+            localStorage.setItem("rememberedEmail", found.email);
+          } else {
+            localStorage.removeItem("rememberedEmail");
+          }
+
           isLoggedIn = true;
           localStorage.setItem("isLoggedIn", "true");
           localStorage.setItem("loggedUserEmail", found.email);
           currentUser = found;
+
+          els.loginPassword.value = "";
+          updatePasswordRules("", "loginRules");
+
           showNotification("Sessão iniciada!", "success");
           checkAppAuth();
         } else {
           showNotification("E-mail ou senha incorretos", "danger");
+          els.loginPassword.value = "";
+          updatePasswordRules("", "loginRules");
         }
       });
 
       document.getElementById("logoutBtn").onclick = logout;
 
       async function hashPassword(password) {
+        if (!password) return null;
         const msgUint8 = new TextEncoder().encode(password);
         const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
         return Array.from(new Uint8Array(hashBuffer))
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
       }
+
+      function updatePasswordRules(password, containerId) {
+        const rules = {
+          upper: /[A-Z]/.test(password),
+          lower: /[a-z]/.test(password),
+          number: /[0-9]/.test(password),
+          special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+        };
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        for (const [rule, isValid] of Object.entries(rules)) {
+          const el = container.querySelector(`[data-rule="${rule}"]`);
+          if (isValid) {
+            el.classList.add("valid");
+            el.querySelector(".rule-icon").innerHTML =
+              '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+          } else {
+            el.classList.remove("valid");
+            el.querySelector(".rule-icon").innerHTML = "";
+          }
+        }
+      }
+
+      els.loginPassword.addEventListener("input", (e) =>
+        updatePasswordRules(e.target.value, "loginRules"),
+      );
+      document
+        .getElementById("userPassword")
+        .addEventListener("input", (e) =>
+          updatePasswordRules(e.target.value, "userRules"),
+        );
 
       function showNotification(msg, type) {
         els.notification.textContent = msg;
@@ -1780,6 +1825,7 @@
         document.getElementById("editingUserId").value = "";
         document.getElementById("userSubmitBtn").textContent = "Salvar Usuário";
         document.getElementById("cancelUserEdit").style.display = "none";
+        updatePasswordRules("", "userRules");
       }
 
       // --- RENDERING ---
@@ -1809,7 +1855,7 @@
               ${
                 hasTabPerm
                   ? `<td style="text-align: center;">
-                <button class="action-btn btn-edit" onclick="editActivity('${act.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                <button class="action-btn btn-edit" onclick="editActivity('${act.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
                 <button class="action-btn btn-delete" onclick="deleteActivity('${act.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4 a2 2 0 0 1 2 2v2"></path></svg></button>
               </td>`
                   : ""
@@ -1832,7 +1878,7 @@
             <td style="text-align: center;">${u.email}</td>
             <td style="text-align: center;"><span class="badge ${badgeClass}">${u.permission}</span></td>
             <td style="text-align: center;">
-              <button class="action-btn btn-edit" onclick="editUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+              <button class="action-btn btn-edit" onclick="editUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
               <button class="action-btn btn-delete" onclick="deleteUser('${u.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4 a2 2 0 0 1 2 2v2"></path></svg></button>
             </td>
           `;
@@ -1884,7 +1930,6 @@
         document.getElementById("amountExceedingBRL").textContent =
           formatter.format(exceeding * appSettings.hourlyRate);
 
-        // UI Charts
         const perc =
           Math.min(
             100,
@@ -1893,7 +1938,6 @@
         const dashReg = document.getElementById("chartProgressRegular");
         if (dashReg)
           dashReg.style.strokeDashoffset = 471.2 - (perc / 100) * 471.2;
-
         const excPerc =
           Math.min(
             100,
@@ -1905,7 +1949,6 @@
           dashExc.style.stroke =
             exceeding > 0 ? "var(--warning)" : "transparent";
         }
-
         document.getElementById("percentageText").textContent = `${perc}%`;
         document.getElementById("consumptionLabel").textContent =
           `${formatTime(sumCalculated)} de ${formatTime(appSettings.contractedHours)}`;
@@ -1920,28 +1963,54 @@
       function applyPermissions() {
         if (!currentUser) return;
         const perms = currentUser.modPerms;
+        const isGuest = currentUser.permission === "Convidado";
+
         document.getElementById("settingsBtn").style.display = perms.settings
           ? "flex"
           : "none";
         els.contractedHoursInput.disabled = !perms.contrato;
         els.hourlyRateInput.disabled = !perms.contrato;
-        document.getElementById("registrationFormPanel").style.display =
-          perms.registro ? "block" : "none";
-        document
-          .querySelector(".main-content")
-          .classList.toggle("no-form-layout", !perms.registro);
+
+        const regPanel = document.getElementById("registrationFormPanel");
+        const mainContent = document.querySelector(".main-content");
+        const visualCard = document.querySelector(".visual-card");
+        const tableContainer = document.querySelector(".table-container");
+        const dashboardView = document.getElementById("dashboardView");
+
+        if (isGuest) {
+          // Layout para Convidados: Tabela à direita do gráfico
+          regPanel.style.display = "none";
+          mainContent.classList.add("no-form-layout");
+
+          // Reordena: Gráfico à esquerda, Tabela à direita dentro do grid principal
+          mainContent.appendChild(visualCard);
+          mainContent.appendChild(tableContainer);
+          tableContainer.style.marginTop = "0"; // Ajuste fino para alinhar ao topo
+        } else {
+          // Layout para Administradores: Formulário à esquerda, Gráfico à direita
+          regPanel.style.display = perms.registro ? "block" : "none";
+          mainContent.classList.remove("no-form-layout");
+
+          // Reordena: Formulário primeiro, depois Gráfico
+          mainContent.appendChild(regPanel);
+          mainContent.appendChild(visualCard);
+
+          // Coloca a tabela de volta abaixo do mainContent
+          dashboardView.appendChild(tableContainer);
+          tableContainer.style.marginTop = "10px";
+        }
       }
 
       window.switchView = (viewName) => {
         document
           .querySelectorAll(".view-section")
           .forEach((v) => v.classList.remove("active"));
-        document.getElementById(viewName + "View").classList.add("active");
+        const target = document.getElementById(viewName + "View");
+        if (target) target.classList.add("active");
         document.getElementById("contractControl").style.display =
           viewName === "dashboard" ? "flex" : "none";
       };
 
-      // Inicia o processo de Autenticação
       populateTimeSelects();
       initAuth();
 
@@ -1970,7 +2039,6 @@
           .split("T")[0];
       }
 
-      // PDF Global compatibility
       window.executePDFGeneration = () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -1978,12 +2046,10 @@
           style: "currency",
           currency: "BRL",
         });
-
         doc.setFont("helvetica", "bold");
         doc.text("LauConsult - Relatório de Horas", 20, 20);
         doc.setFontSize(10);
         doc.text(`Emitido em: ${new Date().toLocaleDateString()}`, 20, 28);
-
         doc.text("Resumo:", 20, 40);
         doc.setFont("helvetica", "normal");
         doc.text(
@@ -1992,7 +2058,6 @@
           48,
         );
         doc.text(`Valor da Hora: ${formatter.format(window.rateVal)}`, 25, 54);
-
         let y = 70;
         doc.setFont("helvetica", "bold");
         doc.text("Tarefa", 20, y);
@@ -2000,7 +2065,6 @@
         doc.text("Horas", 160, y);
         y += 10;
         doc.setFont("helvetica", "normal");
-
         window.activitiesData.forEach((a) => {
           if (y > 270) {
             doc.addPage();
@@ -2011,7 +2075,6 @@
           doc.text(formatTime(a.calculatedHours), 160, y);
           y += 8;
         });
-
         doc.save(`Relatorio_LauConsult_${new Date().getTime()}.pdf`);
       };
     </script>
