@@ -558,6 +558,43 @@
         margin-top: 10px;
       }
 
+      .table-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--border);
+        background: #fcfdfe;
+      }
+
+      .table-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .table-filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .table-filter-group label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--secondary);
+      }
+
+      .filter-select {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: white;
+        cursor: pointer;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
@@ -619,52 +656,6 @@
       .badge-guest {
         background: #fef9c3;
         color: #854d0e;
-      }
-
-      /* --- PERMISSÕES GRID --- */
-      .permissions-grid {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 12px;
-        background: #f8fafc;
-        padding: 15px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        margin-top: 10px;
-      }
-
-      .permission-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 12px;
-        background: #fff;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        grid-column: 1 / -1;
-      }
-
-      .permission-options {
-        display: flex;
-        gap: 15px;
-      }
-
-      .option-check {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-      }
-
-      .permissions-info-box {
-        background: #f0f7ff;
-        border: 1px solid #cce3ff;
-        padding: 15px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        font-size: 0.85rem;
       }
 
       #notification {
@@ -866,7 +857,7 @@
               >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
+                <line x1="12" x2="12" y1="15" y2="3"></line>
               </svg>
               PDF
             </button>
@@ -962,11 +953,11 @@
                   </div>
                   <div class="form-group">
                     <label for="startTime">Início</label>
-                    <select id="startTime" required></select>
+                    <input type="time" id="startTime" required />
                   </div>
                   <div class="form-group">
                     <label for="endTime">Fim</label>
-                    <select id="endTime" required></select>
+                    <input type="time" id="endTime" required />
                   </div>
                   <div class="form-group">
                     <label for="extraHours">Extras (em horas)</label>
@@ -1095,6 +1086,15 @@
           </div>
 
           <div class="table-container">
+            <div class="table-header-flex">
+              <div class="table-title">Histórico de Atividades</div>
+              <div class="table-filter-group">
+                <label for="monthFilter">Filtrar por Mês:</label>
+                <select id="monthFilter" class="filter-select">
+                  <option value="all">Trazer Tudo (Geral)</option>
+                </select>
+              </div>
+            </div>
             <table id="activitiesTable">
               <thead>
                 <tr id="tableHeaderRow">
@@ -1339,6 +1339,7 @@
       let currentUser = null;
       let appSettings = { contractedHours: 40, hourlyRate: 0 };
       let isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      let currentMonthFilter = "all";
 
       // --- DOM ELEMENTS ---
       const els = {
@@ -1357,6 +1358,10 @@
         loginEmail: document.getElementById("loginEmail"),
         loginPassword: document.getElementById("loginPassword"),
         rememberMe: document.getElementById("rememberMe"),
+        startTime: document.getElementById("startTime"),
+        endTime: document.getElementById("endTime"),
+        startDate: document.getElementById("startDate"),
+        monthFilter: document.getElementById("monthFilter"),
       };
 
       // --- AUTHENTICATION FLOW ---
@@ -1425,6 +1430,7 @@
               id: doc.id,
               ...doc.data(),
             }));
+            updateMonthFilterOptions();
             renderAll();
           },
           (err) => console.error("Erro ao ler atividades:", err),
@@ -1484,9 +1490,20 @@
 
       // --- ACTIONS ---
       window.generatePDF = () => {
-        window.activitiesData = activities;
+        const filtered = getFilteredActivities();
+        window.activitiesData = filtered;
         window.contractHoursVal = appSettings.contractedHours;
         window.rateVal = appSettings.hourlyRate;
+        // Título dinâmico baseado no filtro
+        let filterName = "Geral";
+        if (currentMonthFilter !== "all") {
+          const [y, m] = currentMonthFilter.split("-");
+          filterName = new Date(y, m - 1).toLocaleString("pt-BR", {
+            month: "long",
+            year: "numeric",
+          });
+        }
+        window.pdfFilterTitle = filterName;
         if (typeof window.executePDFGeneration === "function")
           window.executePDFGeneration();
       };
@@ -1600,6 +1617,11 @@
         );
       });
 
+      els.monthFilter.addEventListener("change", (e) => {
+        currentMonthFilter = e.target.value;
+        renderAll();
+      });
+
       els.userForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (currentUser?.permission !== "Administrador") return;
@@ -1676,6 +1698,45 @@
       };
 
       // --- HELPERS ---
+      function updateMonthFilterOptions() {
+        const monthsFound = new Set();
+        activities.forEach((a) => {
+          const date = new Date(a.startDate + "T00:00:00");
+          const val = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+          monthsFound.add(val);
+        });
+
+        const sortedMonths = Array.from(monthsFound).sort().reverse();
+        const currentVal = els.monthFilter.value;
+
+        els.monthFilter.innerHTML =
+          '<option value="all">Trazer Tudo (Geral)</option>';
+        sortedMonths.forEach((m) => {
+          const [year, month] = m.split("-");
+          const label = new Date(year, month - 1).toLocaleString("pt-BR", {
+            month: "long",
+            year: "numeric",
+          });
+          const opt = document.createElement("option");
+          opt.value = m;
+          opt.textContent = label;
+          els.monthFilter.appendChild(opt);
+        });
+
+        if ([...monthsFound, "all"].includes(currentVal)) {
+          els.monthFilter.value = currentVal;
+        }
+      }
+
+      function getFilteredActivities() {
+        if (currentMonthFilter === "all") return activities;
+        return activities.filter((a) => {
+          const date = new Date(a.startDate + "T00:00:00");
+          const val = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+          return val === currentMonthFilter;
+        });
+      }
+
       const checkAppAuth = async () => {
         if (isLoggedIn) {
           const email = localStorage.getItem("loggedUserEmail");
@@ -1683,9 +1744,7 @@
           if (currentUser) {
             els.loginScreen.style.display = "none";
             els.appContent.style.display = "block";
-
             switchView("dashboard");
-
             applyPermissions();
             renderAll();
           } else {
@@ -1708,17 +1767,13 @@
         isLoggedIn = false;
         localStorage.setItem("isLoggedIn", "false");
         localStorage.removeItem("loggedUserEmail");
-
         if (!els.rememberMe.checked) {
           els.loginEmail.value = "";
           localStorage.removeItem("rememberedEmail");
         }
         els.loginPassword.value = "";
-
         updatePasswordRules("", "loginRules");
-
         switchView("dashboard");
-
         els.loginScreen.style.display = "flex";
         els.appContent.style.display = "none";
       };
@@ -1740,15 +1795,12 @@
           } else {
             localStorage.removeItem("rememberedEmail");
           }
-
           isLoggedIn = true;
           localStorage.setItem("isLoggedIn", "true");
           localStorage.setItem("loggedUserEmail", found.email);
           currentUser = found;
-
           els.loginPassword.value = "";
           updatePasswordRules("", "loginRules");
-
           showNotification("Sessão iniciada!", "success");
           checkAppAuth();
         } else {
@@ -1836,11 +1888,13 @@
         if (actionHeader)
           actionHeader.style.display = hasTabPerm ? "table-cell" : "none";
 
-        if (activities.length === 0) {
+        const filteredActivities = getFilteredActivities();
+
+        if (filteredActivities.length === 0) {
           els.emptyState.style.display = "block";
         } else {
           els.emptyState.style.display = "none";
-          activities
+          filteredActivities
             .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
             .forEach((act) => {
               const tr = document.createElement("tr");
@@ -1864,7 +1918,7 @@
               els.tableBody.appendChild(tr);
             });
         }
-        renderStats();
+        renderStats(filteredActivities);
       }
 
       function renderUsers() {
@@ -1886,12 +1940,12 @@
         });
       }
 
-      function renderStats() {
-        const sumCalculated = activities.reduce(
+      function renderStats(filteredData) {
+        const sumCalculated = filteredData.reduce(
           (acc, curr) => acc + curr.calculatedHours,
           0,
         );
-        const sumExtraField = activities.reduce(
+        const sumExtraField = filteredData.reduce(
           (acc, curr) => acc + curr.extraHours,
           0,
         );
@@ -1957,7 +2011,7 @@
       function formatTime(decimalHours) {
         const h = Math.floor(decimalHours);
         const m = Math.round((decimalHours - h) * 60);
-        return `${h}h${m > 0 ? m + "m" : ""}`;
+        return `${h}h${m.toString().padStart(2, "0")}m`;
       }
 
       function applyPermissions() {
@@ -1978,24 +2032,16 @@
         const dashboardView = document.getElementById("dashboardView");
 
         if (isGuest) {
-          // Layout para Convidados: Tabela à direita do gráfico
           regPanel.style.display = "none";
           mainContent.classList.add("no-form-layout");
-
-          // Reordena: Gráfico à esquerda, Tabela à direita dentro do grid principal
           mainContent.appendChild(visualCard);
           mainContent.appendChild(tableContainer);
-          tableContainer.style.marginTop = "0"; // Ajuste fino para alinhar ao topo
+          tableContainer.style.marginTop = "0";
         } else {
-          // Layout para Administradores: Formulário à esquerda, Gráfico à direita
           regPanel.style.display = perms.registro ? "block" : "none";
           mainContent.classList.remove("no-form-layout");
-
-          // Reordena: Formulário primeiro, depois Gráfico
           mainContent.appendChild(regPanel);
           mainContent.appendChild(visualCard);
-
-          // Coloca a tabela de volta abaixo do mainContent
           dashboardView.appendChild(tableContainer);
           tableContainer.style.marginTop = "10px";
         }
@@ -2011,32 +2057,14 @@
           viewName === "dashboard" ? "flex" : "none";
       };
 
-      populateTimeSelects();
+      initTimeInputs();
       initAuth();
 
-      function populateTimeSelects() {
-        const selects = [
-          document.getElementById("startTime"),
-          document.getElementById("endTime"),
-        ];
-        selects.forEach((s) => {
-          if (!s) return;
-          s.innerHTML = "";
-          for (let h = 0; h < 24; h++) {
-            for (let m = 0; m < 60; m += 30) {
-              const t = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
-              const opt = document.createElement("option");
-              opt.value = t;
-              opt.textContent = t;
-              s.appendChild(opt);
-            }
-          }
-        });
-        document.getElementById("startTime").value = "09:00";
-        document.getElementById("endTime").value = "10:00";
-        document.getElementById("startDate").value = new Date()
-          .toISOString()
-          .split("T")[0];
+      function initTimeInputs() {
+        if (els.startTime) els.startTime.value = "09:00";
+        if (els.endTime) els.endTime.value = "10:00";
+        if (els.startDate)
+          els.startDate.value = new Date().toISOString().split("T")[0];
       }
 
       window.executePDFGeneration = () => {
@@ -2046,36 +2074,152 @@
           style: "currency",
           currency: "BRL",
         });
-        doc.setFont("helvetica", "bold");
-        doc.text("LauConsult - Relatório de Horas", 20, 20);
-        doc.setFontSize(10);
-        doc.text(`Emitido em: ${new Date().toLocaleDateString()}`, 20, 28);
-        doc.text("Resumo:", 20, 40);
-        doc.setFont("helvetica", "normal");
-        doc.text(
-          `Horas Contratadas: ${formatTime(window.contractHoursVal)}`,
-          25,
-          48,
+
+        // --- CÁLCULOS FINANCEIROS ---
+        const sumCalculated = window.activitiesData.reduce(
+          (acc, curr) => acc + curr.calculatedHours,
+          0,
         );
-        doc.text(`Valor da Hora: ${formatter.format(window.rateVal)}`, 25, 54);
-        let y = 70;
+        const sumExtraField = window.activitiesData.reduce(
+          (acc, curr) => acc + curr.extraHours,
+          0,
+        );
+        const overflow = Math.max(0, sumCalculated - window.contractHoursVal);
+        const exceedingHoursTotal = sumExtraField + overflow;
+
+        const valContracted = window.contractHoursVal * window.rateVal;
+        const valConsumed = sumCalculated * window.rateVal;
+        const valExceeding = exceedingHoursTotal * window.rateVal;
+        const valGrandTotal = valConsumed + valExceeding;
+
+        // Cabeçalho
         doc.setFont("helvetica", "bold");
-        doc.text("Tarefa", 20, y);
-        doc.text("Data", 100, y);
-        doc.text("Horas", 160, y);
-        y += 10;
+        doc.setFontSize(22);
+        doc.setTextColor(37, 99, 235);
+        doc.text("LauConsult", 20, 25);
+
+        doc.setFontSize(14);
+        doc.setTextColor(100, 116, 139);
+        doc.text(
+          `Relatório de Gestão de Horas - ${window.pdfFilterTitle}`,
+          20,
+          33,
+        );
+
+        doc.setFontSize(10);
+        doc.text(
+          `Emitido em: ${new Date().toLocaleDateString("pt-BR")}`,
+          20,
+          40,
+        );
+
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(226, 232, 240);
+        doc.line(20, 45, 190, 45);
+
+        // Seção 1: Resumo do Contrato
+        doc.setFontSize(12);
+        doc.setTextColor(30, 41, 59);
+        doc.text("1. Resumo do Contrato", 20, 55);
+
         doc.setFont("helvetica", "normal");
-        window.activitiesData.forEach((a) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(a.description.substring(0, 30), 20, y);
-          doc.text(a.startDate, 100, y);
-          doc.text(formatTime(a.calculatedHours), 160, y);
-          y += 8;
+        doc.setFontSize(10);
+        doc.text("Horas Contratadas:", 25, 65);
+        doc.text(formatTime(window.contractHoursVal), 140, 65, {
+          align: "right",
         });
-        doc.save(`Relatorio_LauConsult_${new Date().getTime()}.pdf`);
+
+        doc.text("Valor da Hora:", 25, 72);
+        doc.text(formatter.format(window.rateVal), 140, 72, { align: "right" });
+
+        doc.setFont("helvetica", "bold");
+        doc.text("Valor Total do Contrato:", 25, 79);
+        doc.text(formatter.format(valContracted), 140, 79, { align: "right" });
+
+        // Seção 2: Horas Consumidas
+        doc.text("2. Horas Consumidas (Regulares)", 20, 95);
+        doc.setFont("helvetica", "normal");
+        doc.text("Total de Horas Realizadas:", 25, 105);
+        doc.text(formatTime(sumCalculated), 140, 105, { align: "right" });
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(245, 158, 11);
+        doc.text("Resultado Financeiro Consumo:", 25, 112);
+        doc.text(formatter.format(valConsumed), 140, 112, { align: "right" });
+
+        // Seção 3: Horas Excedentes e Extras
+        doc.setTextColor(30, 41, 59);
+        doc.text("3. Horas Excedentes e Extras", 20, 128);
+        doc.setFont("helvetica", "normal");
+        doc.text("Total de Horas Excedentes:", 25, 138);
+        doc.text(formatTime(exceedingHoursTotal), 140, 138, { align: "right" });
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(239, 68, 68);
+        doc.text("Resultado Financeiro Excedente:", 25, 145);
+        doc.text(formatter.format(valExceeding), 140, 145, { align: "right" });
+
+        // Total Final
+        doc.setDrawColor(37, 99, 235);
+        doc.setLineWidth(1);
+        doc.line(20, 155, 190, 155);
+
+        doc.setTextColor(37, 99, 235);
+        doc.setFontSize(14);
+        doc.text("VALOR TOTAL A PAGAR:", 20, 165);
+        doc.text(formatter.format(valGrandTotal), 190, 165, { align: "right" });
+
+        // Detalhamento de Tarefas
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(12);
+        doc.text("4. Detalhamento de Atividades", 20, 185);
+
+        let yTable = 195;
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("Tarefa", 20, yTable);
+        doc.text("Data", 100, yTable);
+        doc.text("Horas", 160, yTable);
+        doc.text("Extras", 180, yTable);
+
+        yTable += 4;
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.2);
+        doc.line(20, yTable, 190, yTable);
+
+        yTable += 6;
+        doc.setFont("helvetica", "normal");
+
+        window.activitiesData
+          .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+          .forEach((a) => {
+            if (yTable > 280) {
+              doc.addPage();
+              yTable = 20;
+            }
+
+            const desc =
+              a.description.length > 45
+                ? a.description.substring(0, 42) + "..."
+                : a.description;
+            doc.text(desc, 20, yTable);
+            doc.text(
+              new Date(a.startDate + "T00:00:00").toLocaleDateString("pt-BR"),
+              100,
+              yTable,
+            );
+            doc.text(formatTime(a.calculatedHours), 160, yTable);
+            doc.text(
+              a.extraHours > 0 ? formatTime(a.extraHours) : "-",
+              180,
+              yTable,
+            );
+            yTable += 7;
+          });
+
+        doc.save(
+          `Relatorio_LauConsult_${new Date().toISOString().split("T")[0]}.pdf`,
+        );
       };
     </script>
   </body>
