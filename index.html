@@ -4,14 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LauConsult - Controle & Gestão</title>
-
-    <!-- Favicon baseado no logótipo LC da imagem enviada -->
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='68%25' font-family='Georgia, serif' font-size='65' font-weight='bold' fill='%23111827' text-anchor='middle'%3ELC%3C/text%3E%3C/svg%3E"
-    />
-
     <!-- Importando a fonte Inter para garantir o visual moderno -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -573,12 +565,15 @@
         padding: 15px 20px;
         border-bottom: 1px solid var(--border);
         background: #fcfdfe;
+        gap: 15px;
+        flex-wrap: wrap;
       }
 
       .table-title {
         font-size: 0.9rem;
         font-weight: 700;
         color: var(--text-main);
+        flex-grow: 1;
       }
 
       .table-filter-group {
@@ -649,6 +644,12 @@
       .btn-delete:hover {
         background: #fef2f2;
       }
+      .btn-restore {
+        color: var(--success);
+      }
+      .btn-restore:hover {
+        background: #ecfdf5;
+      }
 
       .badge {
         padding: 4px 10px;
@@ -664,6 +665,14 @@
       .badge-guest {
         background: #fef9c3;
         color: #854d0e;
+      }
+      .badge-exceeding {
+        background: #fee2e2;
+        color: #ef4444;
+      }
+      .badge-regular {
+        background: #eff6ff;
+        color: #2563eb;
       }
 
       #notification {
@@ -766,6 +775,25 @@
         justify-content: center;
         z-index: 9999;
         display: none;
+      }
+
+      .btn-closing {
+        background: #1e293b;
+        color: white;
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+      }
+      .btn-closing:hover {
+        background: #0f172a;
+        transform: scale(1.02);
       }
     </style>
   </head>
@@ -925,6 +953,30 @@
               </svg>
               PDF
             </button>
+            <!-- BOTÃO PARA VER FECHAMENTOS -->
+            <button
+              id="closedHistoryBtn"
+              class="icon-btn"
+              onclick="switchView('closed')"
+              title="Histórico de Fechamentos"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                ></path>
+                <line x1="12" y1="11" x2="12" y2="17"></line>
+                <polyline points="9 14 12 17 15 14"></polyline>
+              </svg>
+            </button>
             <button
               id="settingsBtn"
               class="icon-btn"
@@ -1022,33 +1074,6 @@
                   <div class="form-group">
                     <label for="endTime">Fim</label>
                     <input type="time" id="endTime" required />
-                  </div>
-                  <div class="form-group">
-                    <label for="extraHours">Extras (em horas)</label>
-                    <select id="extraHours">
-                      <option value="0">0:00</option>
-                      <option value="0.5">0:30</option>
-                      <option value="1">1:00</option>
-                      <option value="1.5:30">1:30</option>
-                      <option value="2">2:00</option>
-                      <option value="2.5:30">2:30</option>
-                      <option value="3">3:00</option>
-                      <option value="3.5:30">3:30</option>
-                      <option value="4">4:00</option>
-                      <option value="4.5:30">4:30</option>
-                      <option value="5">5:00</option>
-                      <option value="5.5:30">5:30</option>
-                      <option value="6">6:00</option>
-                      <option value="6.5:30">6:30</option>
-                      <option value="7">7:00</option>
-                      <option value="7.5:30">7:30</option>
-                      <option value="8">8:00</option>
-                      <option value="8.5:30">8:30</option>
-                      <option value="9">9:00</option>
-                      <option value="9.5:30">9:30</option>
-                      <option value="10">10:00</option>
-                      <option value="12">12:00</option>
-                    </select>
                   </div>
                 </div>
                 <div
@@ -1153,7 +1178,37 @@
             <div class="table-header-flex">
               <div class="table-title">Histórico de Atividades</div>
               <div class="table-filter-group">
-                <label for="monthFilter">Filtrar por Mês:</label>
+                <!-- BOTÃO DE FECHAMENTO -->
+                <button
+                  id="closingActionBtn"
+                  class="btn-closing"
+                  onclick="archiveCurrentView()"
+                  title="Fechar e arquivar registos visíveis"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  Fechamento
+                </button>
+                <div
+                  style="
+                    width: 1px;
+                    height: 20px;
+                    background: var(--border);
+                    margin: 0 5px;
+                  "
+                ></div>
+                <label for="monthFilter">Filtrar:</label>
                 <select id="monthFilter" class="filter-select">
                   <option value="all">Trazer Tudo (Geral)</option>
                 </select>
@@ -1162,10 +1217,9 @@
             <table id="activitiesTable">
               <thead>
                 <tr id="tableHeaderRow">
-                  <th style="text-align: left; width: 35%">Tarefa</th>
+                  <th style="text-align: left; width: 50%">Tarefa</th>
                   <th>Data e Período</th>
-                  <th>Realizadas</th>
-                  <th>Extras</th>
+                  <th>Duração</th>
                   <th id="actionHeader">Ações</th>
                 </tr>
               </thead>
@@ -1173,6 +1227,62 @@
             </table>
             <div id="emptyState" class="empty-state">
               Nenhum registro encontrado.
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW: CLOSED (FECHAMENTOS) -->
+        <div id="closedView" class="view-section">
+          <div class="form-section" style="margin-bottom: 20px">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h3>Resumo de Fechamentos Agrupados</h3>
+              <button
+                class="btn"
+                style="
+                  background: var(--secondary);
+                  color: white;
+                  padding: 8px 16px;
+                  font-size: 0.8rem;
+                "
+                onclick="switchView('dashboard')"
+              >
+                Voltar ao Painel
+              </button>
+            </div>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                margin-top: 5px;
+              "
+            >
+              Cada linha representa um lote de tarefas encerradas. Restaurar um
+              lote moverá todas as suas atividades de volta para o dashboard
+              principal.
+            </p>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="text-align: left; width: 35%">Período Fechado</th>
+                  <th>Data do Fechamento</th>
+                  <th>Atividades</th>
+                  <th>Total de Horas</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="closedTableBody"></tbody>
+            </table>
+            <div id="closedEmptyState" class="empty-state">
+              Nenhum lote de fechamento arquivado encontrado.
             </div>
           </div>
         </div>
@@ -1434,8 +1544,10 @@
         activityForm: document.getElementById("activityForm"),
         userForm: document.getElementById("userForm"),
         tableBody: document.getElementById("tableBody"),
+        closedTableBody: document.getElementById("closedTableBody"),
         userTableBody: document.getElementById("userTableBody"),
         emptyState: document.getElementById("emptyState"),
+        closedEmptyState: document.getElementById("closedEmptyState"),
         loading: document.getElementById("loadingOverlay"),
         contractedHoursInput: document.getElementById("contractedHoursInput"),
         hourlyRateInput: document.getElementById("hourlyRateInput"),
@@ -1517,6 +1629,7 @@
             }));
             updateMonthFilterOptions();
             renderAll();
+            renderClosed();
           },
           (err) => console.error("Erro ao ler atividades:", err),
         );
@@ -1575,11 +1688,33 @@
 
       // --- ACTIONS ---
       window.generatePDF = () => {
-        const filtered = getFilteredActivities();
-        window.activitiesData = filtered;
+        const filtered = getFilteredActivities().filter((a) => !a.closed);
+        // Recalcular status para o PDF baseado no contexto do filtro
+        const sorted = [...filtered].sort(
+          (a, b) =>
+            new Date(a.startDate + "T" + a.startTime) -
+            new Date(b.startDate + "T" + b.startTime),
+        );
+        let acc = 0;
+        const pdfData = sorted.map((a) => {
+          const regular = Math.max(
+            0,
+            Math.min(a.calculatedHours, appSettings.contractedHours - acc),
+          );
+          const exceeding = Math.max(0, a.calculatedHours - regular);
+          acc += a.calculatedHours;
+          return {
+            ...a,
+            regularPortion: regular,
+            exceedingPortion: exceeding,
+            isExceedingTask: exceeding > 0,
+          };
+        });
+
+        window.activitiesData = pdfData;
         window.contractHoursVal = appSettings.contractedHours;
         window.rateVal = appSettings.hourlyRate;
-        // Título dinâmico baseado no filtro
+
         let filterName = "Geral";
         if (currentMonthFilter !== "all") {
           const [y, m] = currentMonthFilter.split("-");
@@ -1593,6 +1728,74 @@
           window.executePDFGeneration();
       };
 
+      // Função para fechar os registos da vista atual agrupando em um lote
+      window.archiveCurrentView = async () => {
+        if (!currentUser?.modPerms.tabela) return;
+        const visible = getFilteredActivities().filter((a) => !a.closed);
+        if (visible.length === 0)
+          return showNotification("Nada para fechar", "danger");
+
+        // Gerar ID de lote único
+        const batchId = "batch_" + Date.now();
+        const closedAt = new Date().toISOString();
+
+        try {
+          for (const act of visible) {
+            await updateDoc(
+              doc(
+                db,
+                "artifacts",
+                appId,
+                "public",
+                "data",
+                "activities",
+                act.id,
+              ),
+              {
+                closed: true,
+                batchId: batchId,
+                closedAt: closedAt,
+              },
+            );
+          }
+          showNotification(
+            `${visible.length} registos agrupados e arquivados!`,
+            "success",
+          );
+        } catch (err) {
+          showNotification("Erro ao fechar período", "danger");
+        }
+      };
+
+      // NOVO: Restaurar um lote (Batch) inteiro
+      window.restoreBatch = async (batchId) => {
+        if (!currentUser?.modPerms.tabela) return;
+        const batchItems = activities.filter((a) => a.batchId === batchId);
+
+        try {
+          for (const item of batchItems) {
+            await updateDoc(
+              doc(
+                db,
+                "artifacts",
+                appId,
+                "public",
+                "data",
+                "activities",
+                item.id,
+              ),
+              { closed: false, batchId: null, closedAt: null },
+            );
+          }
+          showNotification(
+            "Lote restaurado para o painel principal!",
+            "success",
+          );
+        } catch (err) {
+          showNotification("Erro ao restaurar lote", "danger");
+        }
+      };
+
       els.activityForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (!currentUser?.modPerms.registro)
@@ -1603,8 +1806,8 @@
           startDate: document.getElementById("startDate").value,
           startTime: document.getElementById("startTime").value,
           endTime: document.getElementById("endTime").value,
-          extraHours:
-            parseFloat(document.getElementById("extraHours").value) || 0,
+          extraHours: 0,
+          closed: false,
         };
 
         const [sH, sM] = data.startTime.split(":").map(Number);
@@ -1669,7 +1872,6 @@
         document.getElementById("startDate").value = act.startDate;
         document.getElementById("startTime").value = act.startTime;
         document.getElementById("endTime").value = act.endTime;
-        document.getElementById("extraHours").value = act.extraHours;
         document.getElementById("editingId").value = act.id;
         document.getElementById("submitBtn").textContent = "Salvar Alterações";
         document.getElementById("cancelEdit").style.display = "block";
@@ -1860,7 +2062,7 @@
         updatePasswordRules("", "loginRules");
         switchView("dashboard");
         els.loginScreen.style.display = "flex";
-        els.appContent.style.none = "none";
+        els.appContent.style.display = "none";
       };
 
       els.loginForm.addEventListener("submit", async (e) => {
@@ -1977,24 +2179,58 @@
         if (actionHeader)
           actionHeader.style.display = hasTabPerm ? "table-cell" : "none";
 
-        const filteredActivities = getFilteredActivities();
+        // Filtramos apenas as que NÃO estão fechadas para o Dashboard
+        const filteredActivities = getFilteredActivities().filter(
+          (a) => !a.closed,
+        );
 
         if (filteredActivities.length === 0) {
           els.emptyState.style.display = "block";
         } else {
           els.emptyState.style.display = "none";
-          filteredActivities
-            .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
-            .forEach((act) => {
-              const tr = document.createElement("tr");
-              const dateF = new Date(
-                act.startDate + "T00:00:00",
-              ).toLocaleDateString("pt-BR");
-              tr.innerHTML = `
+
+          const sortedCron = [...filteredActivities].sort((a, b) => {
+            const dateA = new Date(a.startDate + "T" + a.startTime);
+            const dateB = new Date(b.startDate + "T" + b.startTime);
+            return dateA - dateB;
+          });
+
+          let accumulatedHours = 0;
+          const processedActivities = sortedCron.map((act) => {
+            const regularHours = Math.max(
+              0,
+              Math.min(
+                act.calculatedHours,
+                appSettings.contractedHours - accumulatedHours,
+              ),
+            );
+            const exceedingHours = Math.max(
+              0,
+              act.calculatedHours - regularHours,
+            );
+            accumulatedHours += act.calculatedHours;
+            return { ...act, regularHours, exceedingHours };
+          });
+
+          processedActivities.reverse().forEach((act) => {
+            const tr = document.createElement("tr");
+            const dateF = new Date(
+              act.startDate + "T00:00:00",
+            ).toLocaleDateString("pt-BR");
+
+            let durationBadge = "";
+            if (act.exceedingHours > 0) {
+              durationBadge = `<span class="badge badge-exceeding">${formatTime(act.calculatedHours)}</span>`;
+            } else {
+              durationBadge = `<span class="badge badge-regular">${formatTime(act.calculatedHours)}</span>`;
+            }
+
+            tr.innerHTML = `
               <td style="font-weight: 600; text-align: left;">${act.description}</td>
               <td style="text-align: center;"><div style="font-size: 0.75rem;">${dateF}</div><div>${act.startTime} - ${act.endTime}</div></td>
-              <td style="text-align: center; font-weight: 700;">${formatTime(act.calculatedHours)}</td>
-              <td style="text-align: center; color: var(--secondary);">${act.extraHours > 0 ? formatTime(act.extraHours) : "-"}</td>
+              <td style="text-align: center; font-weight: 700;">
+                ${durationBadge}
+              </td>
               ${
                 hasTabPerm
                   ? `<td style="text-align: center;">
@@ -2004,10 +2240,81 @@
                   : ""
               }
             `;
-              els.tableBody.appendChild(tr);
-            });
+            els.tableBody.appendChild(tr);
+          });
         }
         renderStats(filteredActivities);
+      }
+
+      // NOVO: Renderizar a tabela de fechados AGRUPADA
+      function renderClosed() {
+        els.closedTableBody.innerHTML = "";
+        const closedItems = activities.filter((a) => a.closed);
+
+        if (closedItems.length === 0) {
+          els.closedEmptyState.style.display = "block";
+          return;
+        }
+
+        els.closedEmptyState.style.display = "none";
+
+        // Agrupar por batchId
+        const batches = {};
+        closedItems.forEach((item) => {
+          const bId = item.batchId || "no_batch";
+          if (!batches[bId]) {
+            batches[bId] = {
+              id: bId,
+              closedAt: item.closedAt || "?",
+              items: [],
+              totalHours: 0,
+              minDate: item.startDate,
+              maxDate: item.startDate,
+            };
+          }
+          batches[bId].items.push(item);
+          batches[bId].totalHours += item.calculatedHours;
+          if (item.startDate < batches[bId].minDate)
+            batches[bId].minDate = item.startDate;
+          if (item.startDate > batches[bId].maxDate)
+            batches[bId].maxDate = item.startDate;
+        });
+
+        // Ordenar batches pelo fechamento mais recente
+        const sortedBatches = Object.values(batches).sort(
+          (a, b) => new Date(b.closedAt) - new Date(a.closedAt),
+        );
+
+        sortedBatches.forEach((batch) => {
+          const tr = document.createElement("tr");
+          const dateF = new Date(batch.closedAt).toLocaleString("pt-BR");
+          const rangeF =
+            batch.minDate === batch.maxDate
+              ? new Date(batch.minDate + "T00:00:00").toLocaleDateString(
+                  "pt-BR",
+                )
+              : `${new Date(batch.minDate + "T00:00:00").toLocaleDateString("pt-BR")} até ${new Date(batch.maxDate + "T00:00:00").toLocaleDateString("pt-BR")}`;
+
+          tr.innerHTML = `
+                <td style="font-weight: 600; text-align: left;">
+                    <div style="color: var(--primary)">Lote: ${rangeF}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 400">ID: ${batch.id}</div>
+                </td>
+                <td style="text-align: center;">${dateF}</td>
+                <td style="text-align: center;"><span class="badge" style="background: #f1f5f9; color: #475569">${batch.items.length} itens</span></td>
+                <td style="text-align: center; font-weight: 800; color: var(--text-main)">${formatTime(batch.totalHours)}</td>
+                <td style="text-align: center;">
+                    <button class="action-btn btn-restore" onclick="restoreBatch('${batch.id}')" title="Restaurar este lote inteiro">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        <span style="font-size: 0.75rem; font-weight: 700; margin-left: 5px">Restaurar Lote</span>
+                    </button>
+                </td>
+            `;
+          els.closedTableBody.appendChild(tr);
+        });
       }
 
       function renderUsers() {
@@ -2034,15 +2341,12 @@
           (acc, curr) => acc + curr.calculatedHours,
           0,
         );
-        const sumExtraField = filteredData.reduce(
-          (acc, curr) => acc + curr.extraHours,
-          0,
-        );
+
         const overflow = Math.max(
           0,
           sumCalculated - appSettings.contractedHours,
         );
-        const exceeding = sumExtraField + overflow;
+        const exceeding = overflow;
         const remaining = Math.max(
           0,
           appSettings.contractedHours - sumCalculated,
@@ -2142,6 +2446,7 @@
           .forEach((v) => v.classList.remove("active"));
         const target = document.getElementById(viewName + "View");
         if (target) target.classList.add("active");
+
         document.getElementById("contractControl").style.display =
           viewName === "dashboard" ? "flex" : "none";
       };
@@ -2164,24 +2469,20 @@
           currency: "BRL",
         });
 
-        // --- CÁLCULOS FINANCEIROS ---
         const sumCalculated = window.activitiesData.reduce(
           (acc, curr) => acc + curr.calculatedHours,
           0,
         );
-        const sumExtraField = window.activitiesData.reduce(
-          (acc, curr) => acc + curr.extraHours,
+        const exceedingHoursTotal = Math.max(
           0,
+          sumCalculated - window.contractHoursVal,
         );
-        const overflow = Math.max(0, sumCalculated - window.contractHoursVal);
-        const exceedingHoursTotal = sumExtraField + overflow;
 
         const valContracted = window.contractHoursVal * window.rateVal;
         const valConsumed = sumCalculated * window.rateVal;
         const valExceeding = exceedingHoursTotal * window.rateVal;
         const valGrandTotal = valConsumed + valExceeding;
 
-        // Cabeçalho
         doc.setFont("helvetica", "bold");
         doc.setFontSize(22);
         doc.setTextColor(37, 99, 235);
@@ -2206,7 +2507,6 @@
         doc.setDrawColor(226, 232, 240);
         doc.line(20, 45, 190, 45);
 
-        // Seção 1: Resumo do Contrato
         doc.setFontSize(12);
         doc.setTextColor(30, 41, 59);
         doc.text("1. Resumo do Contrato", 20, 55);
@@ -2225,7 +2525,6 @@
         doc.text("Valor Total do Contrato:", 25, 79);
         doc.text(formatter.format(valContracted), 140, 79, { align: "right" });
 
-        // Seção 2: Horas Consumidas
         doc.text("2. Horas Consumidas (Regulares)", 20, 95);
         doc.setFont("helvetica", "normal");
         doc.text("Total de Horas Realizadas:", 25, 105);
@@ -2236,9 +2535,8 @@
         doc.text("Resultado Financeiro Consumo:", 25, 112);
         doc.text(formatter.format(valConsumed), 140, 112, { align: "right" });
 
-        // Seção 3: Horas Excedentes e Extras
         doc.setTextColor(30, 41, 59);
-        doc.text("3. Horas Excedentes e Extras", 20, 128);
+        doc.text("3. Horas Excedentes", 20, 128);
         doc.setFont("helvetica", "normal");
         doc.text("Total de Horas Excedentes:", 25, 138);
         doc.text(formatTime(exceedingHoursTotal), 140, 138, { align: "right" });
@@ -2248,7 +2546,6 @@
         doc.text("Resultado Financeiro Excedente:", 25, 145);
         doc.text(formatter.format(valExceeding), 140, 145, { align: "right" });
 
-        // Total Final
         doc.setDrawColor(37, 99, 235);
         doc.setLineWidth(1);
         doc.line(20, 155, 190, 155);
@@ -2258,7 +2555,6 @@
         doc.text("VALOR TOTAL A PAGAR:", 20, 165);
         doc.text(formatter.format(valGrandTotal), 190, 165, { align: "right" });
 
-        // Detalhamento de Tarefas
         doc.setTextColor(30, 41, 59);
         doc.setFontSize(12);
         doc.text("4. Detalhamento de Atividades", 20, 185);
@@ -2267,9 +2563,8 @@
         doc.setFontSize(9);
         doc.setFont("helvetica", "bold");
         doc.text("Tarefa", 20, yTable);
-        doc.text("Data", 100, yTable);
-        doc.text("Horas", 160, yTable);
-        doc.text("Extras", 180, yTable);
+        doc.text("Data", 110, yTable);
+        doc.text("Duração Total", 160, yTable);
 
         yTable += 4;
         doc.setDrawColor(200, 200, 200);
@@ -2280,7 +2575,11 @@
         doc.setFont("helvetica", "normal");
 
         window.activitiesData
-          .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+          .sort(
+            (a, b) =>
+              new Date(b.startDate + "T" + b.startTime) -
+              new Date(a.startDate + "T" + a.startTime),
+          )
           .forEach((a) => {
             if (yTable > 280) {
               doc.addPage();
@@ -2288,21 +2587,25 @@
             }
 
             const desc =
-              a.description.length > 45
-                ? a.description.substring(0, 42) + "..."
+              a.description.length > 55
+                ? a.description.substring(0, 52) + "..."
                 : a.description;
+
+            if (a.isExceedingTask) {
+              doc.setTextColor(239, 68, 68);
+            } else {
+              doc.setTextColor(30, 41, 59);
+            }
+
             doc.text(desc, 20, yTable);
             doc.text(
               new Date(a.startDate + "T00:00:00").toLocaleDateString("pt-BR"),
-              100,
+              110,
               yTable,
             );
             doc.text(formatTime(a.calculatedHours), 160, yTable);
-            doc.text(
-              a.extraHours > 0 ? formatTime(a.extraHours) : "-",
-              180,
-              yTable,
-            );
+
+            doc.setTextColor(30, 41, 59);
             yTable += 7;
           });
 
