@@ -1767,7 +1767,7 @@
         }
       };
 
-      // NOVO: Restaurar um lote (Batch) inteiro
+      // Restaurar um lote (Batch) inteiro
       window.restoreBatch = async (batchId) => {
         if (!currentUser?.modPerms.tabela) return;
         const batchItems = activities.filter((a) => a.batchId === batchId);
@@ -2469,6 +2469,7 @@
           currency: "BRL",
         });
 
+        // --- CÁLCULOS FINANCEIROS CORRIGIDOS ---
         const sumCalculated = window.activitiesData.reduce(
           (acc, curr) => acc + curr.calculatedHours,
           0,
@@ -2478,11 +2479,15 @@
           sumCalculated - window.contractHoursVal,
         );
 
-        const valContracted = window.contractHoursVal * window.rateVal;
-        const valConsumed = sumCalculated * window.rateVal;
-        const valExceeding = exceedingHoursTotal * window.rateVal;
-        const valGrandTotal = valConsumed + valExceeding;
+        // Base Contratada (Valor Fixo)
+        const valContractedBase = window.contractHoursVal * window.rateVal;
+        // Valor apenas das Excedentes
+        const valExceedingOnly = exceedingHoursTotal * window.rateVal;
 
+        // CÁLCULO FINAL: Horas Contratadas (Valor Fixo) + Valor das Excedentes
+        const valGrandTotal = valContractedBase + valExceedingOnly;
+
+        // Cabeçalho
         doc.setFont("helvetica", "bold");
         doc.setFontSize(22);
         doc.setTextColor(37, 99, 235);
@@ -2507,13 +2512,14 @@
         doc.setDrawColor(226, 232, 240);
         doc.line(20, 45, 190, 45);
 
+        // Seção 1: Resumo do Contrato (Fixo)
         doc.setFontSize(12);
         doc.setTextColor(30, 41, 59);
         doc.text("1. Resumo do Contrato", 20, 55);
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
-        doc.text("Horas Contratadas:", 25, 65);
+        doc.text("Horas Contratadas (Base):", 25, 65);
         doc.text(formatTime(window.contractHoursVal), 140, 65, {
           align: "right",
         });
@@ -2522,44 +2528,45 @@
         doc.text(formatter.format(window.rateVal), 140, 72, { align: "right" });
 
         doc.setFont("helvetica", "bold");
-        doc.text("Valor Total do Contrato:", 25, 79);
-        doc.text(formatter.format(valContracted), 140, 79, { align: "right" });
+        doc.text("Valor Base do Contrato:", 25, 79);
+        doc.text(formatter.format(valContractedBase), 140, 79, {
+          align: "right",
+        });
 
-        doc.text("2. Horas Consumidas (Regulares)", 20, 95);
-        doc.setFont("helvetica", "normal");
-        doc.text("Total de Horas Realizadas:", 25, 105);
-        doc.text(formatTime(sumCalculated), 140, 105, { align: "right" });
-
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(245, 158, 11);
-        doc.text("Resultado Financeiro Consumo:", 25, 112);
-        doc.text(formatter.format(valConsumed), 140, 112, { align: "right" });
-
+        // Seção 2: Horas Excedentes (Informal e Financeiro)
         doc.setTextColor(30, 41, 59);
-        doc.text("3. Horas Excedentes", 20, 128);
+        doc.setFontSize(12);
+        doc.text("2. Horas Excedentes", 20, 95);
+
         doc.setFont("helvetica", "normal");
-        doc.text("Total de Horas Excedentes:", 25, 138);
-        doc.text(formatTime(exceedingHoursTotal), 140, 138, { align: "right" });
+        doc.setFontSize(10);
+        doc.text("Total de Horas Excedentes:", 25, 105);
+        doc.text(formatTime(exceedingHoursTotal), 140, 105, { align: "right" });
 
         doc.setFont("helvetica", "bold");
         doc.setTextColor(239, 68, 68);
-        doc.text("Resultado Financeiro Excedente:", 25, 145);
-        doc.text(formatter.format(valExceeding), 140, 145, { align: "right" });
+        doc.text("Resultado Financeiro Excedente:", 25, 112);
+        doc.text(formatter.format(valExceedingOnly), 140, 112, {
+          align: "right",
+        });
 
+        // Divisor para Total
         doc.setDrawColor(37, 99, 235);
         doc.setLineWidth(1);
-        doc.line(20, 155, 190, 155);
+        doc.line(20, 125, 190, 125);
 
+        // VALOR TOTAL A PAGAR
         doc.setTextColor(37, 99, 235);
         doc.setFontSize(14);
-        doc.text("VALOR TOTAL A PAGAR:", 20, 165);
-        doc.text(formatter.format(valGrandTotal), 190, 165, { align: "right" });
+        doc.text("VALOR TOTAL A PAGAR:", 20, 135);
+        doc.text(formatter.format(valGrandTotal), 190, 135, { align: "right" });
 
+        // Detalhamento de Tarefas
         doc.setTextColor(30, 41, 59);
         doc.setFontSize(12);
-        doc.text("4. Detalhamento de Atividades", 20, 185);
+        doc.text("3. Detalhamento de Atividades do Período", 20, 155);
 
-        let yTable = 195;
+        let yTable = 165;
         doc.setFontSize(9);
         doc.setFont("helvetica", "bold");
         doc.text("Tarefa", 20, yTable);
@@ -2581,15 +2588,14 @@
               new Date(a.startDate + "T" + a.startTime),
           )
           .forEach((a) => {
-            if (yTable > 280) {
+            // Quebra de texto automática para descrições longas
+            const descLines = doc.splitTextToSize(a.description, 85); // Largura máxima da coluna tarefa
+            const rowHeight = descLines.length * 6; // Calcula altura necessária (aprox 6 por linha)
+
+            if (yTable + rowHeight > 280) {
               doc.addPage();
               yTable = 20;
             }
-
-            const desc =
-              a.description.length > 55
-                ? a.description.substring(0, 52) + "..."
-                : a.description;
 
             if (a.isExceedingTask) {
               doc.setTextColor(239, 68, 68);
@@ -2597,7 +2603,10 @@
               doc.setTextColor(30, 41, 59);
             }
 
-            doc.text(desc, 20, yTable);
+            // Desenha as linhas da descrição
+            doc.text(descLines, 20, yTable);
+
+            // Desenha as outras colunas na primeira linha da tarefa
             doc.text(
               new Date(a.startDate + "T00:00:00").toLocaleDateString("pt-BR"),
               110,
@@ -2606,7 +2615,7 @@
             doc.text(formatTime(a.calculatedHours), 160, yTable);
 
             doc.setTextColor(30, 41, 59);
-            yTable += 7;
+            yTable += rowHeight + 2; // Move yTable para a próxima tarefa com um pequeno espaçamento extra
           });
 
         doc.save(
