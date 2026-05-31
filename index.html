@@ -16,6 +16,7 @@
     ></script>
     <!-- jsPDF SDK para geração de relatórios -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
       :root {
         --primary: #2563eb;
@@ -2317,6 +2318,7 @@
         });
       }
 
+      // Renderizar Utilizadores
       function renderUsers() {
         els.userTableBody.innerHTML = "";
         users.forEach((u) => {
@@ -2486,8 +2488,8 @@
         // Valor apenas das Excedentes
         const valExceedingOnly = exceedingHoursTotal * window.rateVal;
 
-        // CÁLCULO FINAL: Soma do Valor das Horas Consumidas + Parcela Excedente
-        const valGrandTotal = valConsumedTotal + valExceedingOnly;
+        // CÁLCULO FINAL: Soma do Valor Contratado Base + Parcela Excedente (conforme visualização do painel)
+        const valGrandTotal = valContractedBase + valExceedingOnly;
 
         // Cabeçalho
         doc.setFont("helvetica", "bold");
@@ -2535,39 +2537,32 @@
           align: "right",
         });
 
-        // Seção 2: Horas Consumidas
+        // --- NOVA Seção 2: Horas Excedentes (Anteriormente Seção 3) ---
         doc.setFontSize(11);
         doc.setTextColor(30, 41, 59);
-        doc.text("2. Horas Consumidas", 20, 95);
+        doc.text("2. Horas Excedentes", 20, 95);
+
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
-        doc.text(formatTime(sumCalculated), 160, 95, { align: "right" });
 
-        doc.setFont("helvetica", "bold");
-        doc.text("Total de Horas Consumidas:", 20, 105);
-        doc.text(formatter.format(valConsumedTotal), 160, 105, {
-          align: "right",
-        });
-
-        // Seção 3: Horas Excedentes
-        doc.setFontSize(11);
-        doc.setTextColor(30, 41, 59);
-        doc.text("3. Horas Excedentes", 20, 120);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.text(formatTime(window.contractHoursVal), 160, 120, {
-          align: "right",
-        }); // Referência da base na imagem do usuário
-
-        doc.text("Total de Horas Excedentes:", 20, 130);
-        doc.text(formatTime(exceedingHoursTotal), 160, 130, { align: "right" });
+        doc.text("Total de Horas Excedentes:", 20, 105);
+        doc.text(formatTime(exceedingHoursTotal), 160, 105, { align: "right" });
 
         doc.setFont("helvetica", "bold");
         doc.setTextColor(239, 68, 68);
-        doc.text("Resultado Financeiro Excedente:", 20, 138);
-        doc.text(formatter.format(valExceedingOnly), 160, 138, {
+        doc.text("Resultado Financeiro Excedente:", 20, 113);
+        doc.text(formatter.format(valExceedingOnly), 160, 113, {
           align: "right",
         });
+
+        // --- NOVA Seção 3: Horas Consumidas (Anteriormente Seção 2) ---
+        doc.setFontSize(11);
+        doc.setTextColor(30, 41, 59);
+        doc.text("3. Horas Consumidas", 20, 128);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(formatTime(sumCalculated), 160, 128, { align: "right" });
 
         // Divisor para Total
         doc.setDrawColor(226, 232, 240);
